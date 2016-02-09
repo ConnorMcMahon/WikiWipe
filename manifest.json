@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+
+  "name": "WikiWipe",
+  "description": "This extension attempts to remove wikipedia information",
+  "version": "0.1",
+
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.google.com/*"],
+      "js": ["wikipurge.js"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "https://ajax.googleapis.com/"
+  ]
+}
