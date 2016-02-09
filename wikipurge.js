@@ -1,8 +1,12 @@
 const ELEMENT_PARENT = document.body
 
+//Wiki-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk'
 const FACTOID_CLASS = 'g mnr-c g-blk'
 const SEARCH_RESULTS_CLASS = 'rc'
+
+//General Google DOM ids
+const SEARCH_BOX_ID = 'lst-ib'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/
 
@@ -56,7 +60,16 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 
+//Initialization Code
 
+//ensures that logging happens each time that the user creates a new search
+var searchBox = document.getElementById(SEARCH_BOX_ID);
+searchBox.addEventListener('click', function(evt){
+    loggedSearchInfo = false;
+    console.log('reset loggedSearchInfo');
+});
+
+//creates the mutation observer that hides wiki related DOM objects
 observer.observe(ELEMENT_PARENT, {
     childList: true,
     subtree: true
