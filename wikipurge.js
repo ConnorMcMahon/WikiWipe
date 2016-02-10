@@ -7,11 +7,14 @@ const SEARCH_RESULTS_CLASS = 'rc'
 
 //General Google DOM ids
 const SEARCH_BOX_ID = 'lst-ib'
+const DID_YOU_MEAN_CLASS = 'spell'
+const ORIG_SPELLING_CLASS = 'spell_orig'
+const VOICE_SEARCH_ID = 'gs_st0'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/
 
 var foundWikiData = false;
-var loggedSearchInfo = false;
+var loggedQuery = false;
 
 var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
@@ -51,9 +54,9 @@ var observer = new MutationObserver(function(mutations) {
                 }
             }
 
-            if (foundWikiData && !loggedSearchInfo) {
+            if (foundWikiData && !loggedQuery) {
                 //TODO: add some logging features here
-                loggedSearchInfo = true;
+                loggedQuery = true;
             }
         }
     });
@@ -62,12 +65,38 @@ var observer = new MutationObserver(function(mutations) {
 
 //Initialization Code
 
-//ensures that logging happens each time that the user creates a new search
-var searchBox = document.getElementById(SEARCH_BOX_ID);
-searchBox.addEventListener('click', function(evt){
-    loggedSearchInfo = false;
-    console.log('reset loggedSearchInfo');
-});
+//Finds all entities that could indicate a new search query after page loads
+
+var initializeQueryListeners = function(){
+    var searchBox = document.getElementById(SEARCH_BOX_ID);
+    var voiceSearch = document.getElementById(VOICE_SEARCH_ID);
+    var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
+    console.log(suggestedQuery);
+    var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
+    console.log(originalQuery);
+
+    queryStarters = [searchBox, voiceSearch, suggestedQuery, originalQuery];
+
+    var queryReset = function(evt) {
+        loggedQuery = false;
+        console.log('reset loggedQuery');
+    }
+
+    queryStarters.forEach(function(element, index, array){
+        element.addEventListener('click', queryReset);
+    });   
+}
+
+if (document.readyState != 'loading'){
+    initializeQueryListeners();
+} else {
+    document.addEventListener('DOMContentLoaded', initializeQueryListeners);
+}
+
+// searchBox.addEventListener('click', function(evt){
+//     loggedQuery = false;
+//     console.log('reset loggedQuery');
+// });
 
 //creates the mutation observer that hides wiki related DOM objects
 observer.observe(ELEMENT_PARENT, {
