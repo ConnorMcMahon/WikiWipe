@@ -34,8 +34,16 @@ var observer = new MutationObserver(function(mutations) {
 
             if (factoids) {
                 for(var i = 0; i < factoids.length; i++){
-                    //hides the factoid
-                    factoids[i].style.setProperty('display', 'none', 'important');
+                    //Find the source in the html
+                    var isSourced = factoids[i].childNodes[1].childNodes.length > 1;
+
+                    var isWikiData = !isSourced;
+
+                    //hides the factoid if it is from WikiData
+                    if (isWikiData){
+                        factoids[i].style.setProperty('display', 'none', 'important');
+                    }
+                    
                 }
                 foundWikiData = true;
             }
@@ -54,7 +62,7 @@ var observer = new MutationObserver(function(mutations) {
                 }
             }
 
-            if (foundWikiData && !loggedQuery) {
+            if (!loggedQuery) {
                 //TODO: add some logging features here
                 loggedQuery = true;
             }
@@ -64,26 +72,26 @@ var observer = new MutationObserver(function(mutations) {
 
 
 //Initialization Code
+//A listener function that upon activation indicates a new query has begun
+var queryReset = function(evt) {
+    loggedQuery = false;
+    console.log('reset loggedQuery');
+}
 
 //Finds all entities that could indicate a new search query after page loads
-
 var initializeQueryListeners = function(){
     var searchBox = document.getElementById(SEARCH_BOX_ID);
     var voiceSearch = document.getElementById(VOICE_SEARCH_ID);
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
-    console.log(suggestedQuery);
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
-    console.log(originalQuery);
 
     queryStarters = [searchBox, voiceSearch, suggestedQuery, originalQuery];
 
-    var queryReset = function(evt) {
-        loggedQuery = false;
-        console.log('reset loggedQuery');
-    }
 
     queryStarters.forEach(function(element, index, array){
-        element.addEventListener('click', queryReset);
+        if (element != null){
+            element.addEventListener('click', queryReset);
+        }
     });   
 }
 
@@ -92,11 +100,6 @@ if (document.readyState != 'loading'){
 } else {
     document.addEventListener('DOMContentLoaded', initializeQueryListeners);
 }
-
-// searchBox.addEventListener('click', function(evt){
-//     loggedQuery = false;
-//     console.log('reset loggedQuery');
-// });
 
 //creates the mutation observer that hides wiki related DOM objects
 observer.observe(ELEMENT_PARENT, {
