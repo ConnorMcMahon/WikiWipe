@@ -16,9 +16,11 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/
 var foundWikiData = false;
 var loggedQuery = false;
 
+var removeWikiData = true;
+
 var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
-        if (mutation.addedNodes && (mutation.addedNodes.length > 0)) {
+        if (mutation.addedNodes && (mutation.addedNodes.length > 0) && removeWikiData) {
             //locates any potential dom elements to remove
             var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
             var factoids = document.getElementsByClassName(FACTOID_CLASS);
@@ -40,7 +42,7 @@ var observer = new MutationObserver(function(mutations) {
                     var isWikiData = !isSourced;
 
                     //hides the factoid if it is from WikiData
-                    if (isWikiData){
+                    if (isWikiData) {
                         factoids[i].style.setProperty('display', 'none', 'important');
                     }
                     
@@ -61,44 +63,42 @@ var observer = new MutationObserver(function(mutations) {
                     }
                 }
             }
-
-            if (!loggedQuery) {
-                //TODO: add some logging features here
-                loggedQuery = true;
-            }
         }
     });
 });
 
 
 //Initialization Code
-//A listener function that upon activation indicates a new query has begun
-var queryReset = function(evt) {
+
+//A listener function that sends logging information
+var queryEnd = function(evt) {
     loggedQuery = false;
-    console.log('reset loggedQuery');
+    //todo send the log information to the server
 }
 
 //Finds all entities that could indicate a new search query after page loads
-var initializeQueryListeners = function(){
+var initializeLoggingListeners = function(){
+    //place logging handlers on things that indicate a new search
     var searchBox = document.getElementById(SEARCH_BOX_ID);
     var voiceSearch = document.getElementById(VOICE_SEARCH_ID);
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
-
-    queryStarters = [searchBox, voiceSearch, suggestedQuery, originalQuery];
-
-
-    queryStarters.forEach(function(element, index, array){
+    
+    var queryEnders = [searchBox, voiceSearch, suggestedQuery, originalQuery];
+    queryEnders.forEach(function(element, index, array){
         if (element != null){
-            element.addEventListener('click', queryReset);
+            element.addEventListener('click', queryEnd);
         }
-    });   
+    });
+
+
+
 }
 
 if (document.readyState != 'loading'){
-    initializeQueryListeners();
+    initializeLoggingListeners();
 } else {
-    document.addEventListener('DOMContentLoaded', initializeQueryListeners);
+    document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
 }
 
 //creates the mutation observer that hides wiki related DOM objects
@@ -106,4 +106,3 @@ observer.observe(ELEMENT_PARENT, {
     childList: true,
     subtree: true
 });
-
