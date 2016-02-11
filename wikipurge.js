@@ -91,7 +91,21 @@ var initializeLoggingListeners = function(){
         }
     });
 
+    //Place logging handlers on search links
+    var searchLinks = [];
+    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+    for(var i = 0; i < searchResults.length; i++){
+        var link = searchResults[i].childNodes[0];
+        searchLinks.push(link);
+    }
 
+    searchLinks.forEach(function(element, index, array){
+        element.addEventListener("click", function(evt){
+            //todo log which link was picked
+            loggedQuery = false;
+            console.log("clicked link:" + (index + 1));
+        });
+    })
 
 }
 
