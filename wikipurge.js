@@ -1,5 +1,5 @@
 const ELEMENT_PARENT = document.body
-const PAGE_DELAY = 1000 * .2 
+const PAGE_DELAY = 1000 * .3
 
 //Wiki-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk'
@@ -15,10 +15,11 @@ const GOOGLE_BODY = 'rcnt'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/
 
-var foundWikiData = false;
 var loggedQuery = false;
 
 var removeWikiData = true;
+
+var logEntry = {}
 
 var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
@@ -27,13 +28,14 @@ var observer = new MutationObserver(function(mutations) {
             var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
             var factoids = document.getElementsByClassName(FACTOID_CLASS);
             var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+            logEntry.numWikiLinksRemoved = 0;
             
             if (knowledgeBoxes) {
                 for(var i = 0; i < knowledgeBoxes.length; i++){
                     //hides the knowledge box
                     knowledgeBoxes[i].style.setProperty('display', 'none', 'important');
                 }
-                foundWikiData = true;
+                logEntry.removeKnowledgeBox = true;
             }
 
             if (factoids) {
@@ -46,10 +48,10 @@ var observer = new MutationObserver(function(mutations) {
                     //hides the factoid if it is from WikiData
                     if (isWikiData) {
                         factoids[i].style.setProperty('display', 'none', 'important');
+                        logEntry.removeFactoid = true;
                     }
                     
                 }
-                foundWikiData = true;
             }
 
             if (searchResults) {
@@ -61,7 +63,7 @@ var observer = new MutationObserver(function(mutations) {
                     //hides the link if it is from wikipedia
                     if (isWikiLink){
                         searchResults[i].style.setProperty('display', 'none', 'important');
-                        foundWikiData = true;
+                        logEntry.numWikiLinksRemoved++;           
                     }
                 }
             }
@@ -74,6 +76,17 @@ var observer = new MutationObserver(function(mutations) {
 
 //A listener function that sends logging information
 var queryEnd = function(evt) {
+    observer.observe(ELEMENT_PARENT, {
+        childList: true,
+        subtree: true
+    });
+    
+    var searchBox = document.getElementById(SEARCH_BOX_ID);
+    logEntry.queryName = searchBox.value
+    console.log(logEntry);
+
+    logEntry = {}
+
     loggedQuery = false;
     //todo send the log information to the server
 }
@@ -105,10 +118,14 @@ var initializeLoggingListeners = function(){
         element.addEventListener("click", function(evt){
             //todo log which link was picked
             loggedQuery = false;
-            console.log("clicked link:" + (index + 1));
+            logEntry.linkRank = index + 1;
+            if (logEntry.numWikiLinksRemoved != null){
+                logEntry.linkRank -= logEntry.numWikiLinksRemoved;
+            }
+            logEntry.linkURL = element.childNodes[0].getAttribute("data-href");
+            queryEnd(evt);
         });
-    })
-
+    });
 }
 
 if (document.readyState != 'loading'){
@@ -116,6 +133,7 @@ if (document.readyState != 'loading'){
 } else {
     document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
 }
+
 
 //creates the mutation observer that hides wiki related DOM objects
 observer.observe(ELEMENT_PARENT, {
@@ -125,7 +143,12 @@ observer.observe(ELEMENT_PARENT, {
 
 var restorePage = function(observer) {
     var body = document.getElementById(GOOGLE_BODY);
-    body.style.setProperty('display', 'block', 'important');
+    //if body hasn't loaded yet, check every .1 sec until it is found
+    while (body == null){
+        setTimeout(function() {body = document.getElementById(GOOGLE_BODY);}, 100);
+    }
+
+    body.style.setProperty('display', 'block');
     //prevents the mutation observer from removing any further elements
     observer.disconnect();
 }
