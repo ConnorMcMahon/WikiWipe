@@ -11,7 +11,8 @@
   "content_scripts": [
     {
       "matches": ["*://www.google.com/*"],
-      "js": ["wikipurge.js"]
+      "js": ["wikipurge.js"],
+      "css": ["hide.css"]
     }
   ],
   "permissions": [

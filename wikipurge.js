@@ -1,4 +1,5 @@
 const ELEMENT_PARENT = document.body
+const PAGE_DELAY = 1000 * .2 
 
 //Wiki-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk'
@@ -10,6 +11,7 @@ const SEARCH_BOX_ID = 'lst-ib'
 const DID_YOU_MEAN_CLASS = 'spell'
 const ORIG_SPELLING_CLASS = 'spell_orig'
 const VOICE_SEARCH_ID = 'gs_st0'
+const GOOGLE_BODY = 'rcnt'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/
 
@@ -120,3 +122,15 @@ observer.observe(ELEMENT_PARENT, {
     childList: true,
     subtree: true
 });
+
+var restorePage = function(observer) {
+    var body = document.getElementById(GOOGLE_BODY);
+    body.style.setProperty('display', 'block', 'important');
+    //prevents the mutation observer from removing any further elements
+    observer.disconnect();
+}
+
+//after a specified ammount of time, page is displayed to the user.
+setTimeout(function() {
+    restorePage(observer);
+}, PAGE_DELAY);
