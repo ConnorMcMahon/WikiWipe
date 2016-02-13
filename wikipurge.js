@@ -19,7 +19,9 @@ var loggedQuery = false;
 
 var removeWikiData = true;
 
-var logEntry = {}
+var logEntry = {};
+
+var querySent = false;
 
 var observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
@@ -76,19 +78,20 @@ var observer = new MutationObserver(function(mutations) {
 
 //A listener function that sends logging information
 var queryEnd = function(evt) {
-    observer.observe(ELEMENT_PARENT, {
-        childList: true,
-        subtree: true
-    });
-    
-    var searchBox = document.getElementById(SEARCH_BOX_ID);
-    logEntry.queryName = searchBox.value
-    console.log(logEntry);
+    if (!querySent){
+        observer.observe(ELEMENT_PARENT, {
+            childList: true,
+            subtree: true
+        });
+        
+        var searchBox = document.getElementById(SEARCH_BOX_ID);
+        logEntry.queryName = searchBox.value
+        alert(JSON.stringify(logEntry));
 
-    logEntry = {}
-
-    loggedQuery = false;
-    //todo send the log information to the server
+        logEntry = {}
+        //todo send the log information to the server
+    }
+    querySent = true;
 }
 
 //Finds all entities that could indicate a new search query after page loads
@@ -117,7 +120,6 @@ var initializeLoggingListeners = function(){
     searchLinks.forEach(function(element, index, array){
         element.addEventListener("click", function(evt){
             //todo log which link was picked
-            loggedQuery = false;
             logEntry.linkRank = index + 1;
             if (logEntry.numWikiLinksRemoved != null){
                 logEntry.linkRank -= logEntry.numWikiLinksRemoved;
@@ -126,7 +128,7 @@ var initializeLoggingListeners = function(){
             queryEnd(evt);
         });
     });
-}
+};
 
 if (document.readyState != 'loading'){
     initializeLoggingListeners();
@@ -145,7 +147,7 @@ var restorePage = function(observer) {
     var body = document.getElementById(GOOGLE_BODY);
     //if body hasn't loaded yet, check every .1 sec until it is found
     while (body == null){
-        setTimeout(function() {body = document.getElementById(GOOGLE_BODY);}, 100);
+        setTimeout(function() { body = document.getElementById(GOOGLE_BODY); }, 100);
     }
 
     body.style.setProperty('display', 'block');
@@ -157,3 +159,7 @@ var restorePage = function(observer) {
 setTimeout(function() {
     restorePage(observer);
 }, PAGE_DELAY);
+
+window.onbeforeunload = function() {
+    queryEnd(null);
+};
