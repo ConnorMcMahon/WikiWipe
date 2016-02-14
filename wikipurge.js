@@ -79,14 +79,13 @@ var observer = new MutationObserver(function(mutations) {
 //A listener function that sends logging information
 var queryEnd = function(evt) {
     if (!querySent){
-        observer.observe(ELEMENT_PARENT, {
-            childList: true,
-            subtree: true
-        });
+        // observer.observe(ELEMENT_PARENT, {
+        //     childList: true,
+        //     subtree: true
+        // });
         
         var searchBox = document.getElementById(SEARCH_BOX_ID);
         logEntry.queryName = searchBox.value
-        alert(JSON.stringify(logEntry));
 
         logEntry = {}
         //todo send the log information to the server
@@ -144,15 +143,16 @@ observer.observe(ELEMENT_PARENT, {
 });
 
 var restorePage = function(observer) {
-    var body = document.getElementById(GOOGLE_BODY);
-    //if body hasn't loaded yet, check every .1 sec until it is found
-    while (body == null){
-        setTimeout(function() { body = document.getElementById(GOOGLE_BODY); }, 100);
-    }
-
-    body.style.setProperty('display', 'block');
-    //prevents the mutation observer from removing any further elements
-    observer.disconnect();
+    //keeps attempting to restore body every .1 sec until successful
+    var interval = setInterval(function(){
+        body = document.getElementById(GOOGLE_BODY);
+        if (body){
+            body.style.setProperty('display', 'block');
+            //prevents the mutation observer from removing any further elements
+            observer.disconnect();
+            clearInterval(interval);
+        }
+    }, 100);  
 }
 
 //after a specified ammount of time, page is displayed to the user.
