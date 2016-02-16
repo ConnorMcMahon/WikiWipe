@@ -10,6 +10,8 @@ var getIcon = function(extensionOn){
 	return path;
 }
 
+chrome.omnibox.setDefaultSuggestion({description: "Autofill disabled"});
+
 chrome.browserAction.onClicked.addListener(function(tab) {
 	extensionOn = !extensionOn;
 	iconPath = getIcon(extensionOn);
