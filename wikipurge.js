@@ -40,8 +40,9 @@ var removeDOMElements = function() {
 
     if (answers) {
         for(var i = 0; i < answers.length; i++){
-            var isFactoid = (answers[i].childNodes[0].getAttribute("class") == FACTOID_CLASS);
-            var isQABox = (answers[i].childNodes[0].getAttribute("class") == QA_BOX_CLASS);
+            var targetElement = answers[i].childNodes[0];
+            var isFactoid = (targetElement.getAttribute("class") == FACTOID_CLASS);
+            var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
             
             if (isFactoid){
                 //Find the source in the html
@@ -53,6 +54,15 @@ var removeDOMElements = function() {
                 if (isWikiData) {
                     answers[i].style.setProperty('display', 'none', 'important');
                     logEntry.removeFactoid = true;
+                }
+            } else if (isQABox) {
+                var questions = targetElement.getElementsByClassName("related-question-pair");
+                for(var j = 0; j < questions.length; j++){
+                    var answerLink = questions[j].getElementsByClassName("_Rm")[0].innerHTML;
+                    var isWikiLink = WIKI_REGEX.test(answerLink);
+                    if (isWikiLink) {
+                        questions[j].style.setProperty('display', 'none', 'important');
+                    }
                 }
             }
 
