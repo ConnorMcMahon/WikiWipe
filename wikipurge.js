@@ -3,7 +3,9 @@ const PAGE_DELAY = 1000*.2;
 
 //Wiki-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
-const FACTOID_CLASS = 'g mnr-c g-blk';
+const ANSWERS_CLASS = 'g mnr-c g-blk';
+const FACTOID_CLASS = "kp-blk _rod _Rqb _RJe"
+const QA_BOX_CLASS = "kp-blk _Jw _thf _Rqb _RJe"
 const SEARCH_RESULTS_CLASS = 'rc';
 
 //General Google DOM ids
@@ -18,13 +20,13 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 //Global Vars
 
 var logEntry = {};
-
+var querySent = false;
 
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
-    var factoids = document.getElementsByClassName(FACTOID_CLASS);
+    var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     logEntry.numWikiLinksRemoved = 0;
     
@@ -36,18 +38,24 @@ var removeDOMElements = function() {
         logEntry.removeKnowledgeBox = true;
     }
 
-    if (factoids) {
-        for(var i = 0; i < factoids.length; i++){
-            //Find the source in the html
-            var isSourced = factoids[i].childNodes[1].childNodes.length > 1;
+    if (answers) {
+        for(var i = 0; i < answers.length; i++){
+            var isFactoid = (answers[i].childNodes[0].getAttribute("class") == FACTOID_CLASS);
+            var isQABox = (answers[i].childNodes[0].getAttribute("class") == QA_BOX_CLASS);
+            
+            if (isFactoid){
+                //Find the source in the html
+                var isSourced = answers[i].childNodes[1].childNodes.length > 1;
 
-            var isWikiData = !isSourced;
+                var isWikiData = !isSourced;
 
-            //hides the factoid if it is from WikiData
-            if (isWikiData) {
-                factoids[i].style.setProperty('display', 'none', 'important');
-                logEntry.removeFactoid = true;
+                //hides the factoid if it is from WikiData
+                if (isWikiData) {
+                    answers[i].style.setProperty('display', 'none', 'important');
+                    logEntry.removeFactoid = true;
+                }
             }
+
         }
     }
 
@@ -91,6 +99,7 @@ var queryEnd = function(evt) {
         alert(JSON.stringify(logEntry));
 
         logEntry = {}
+        querySent = true;
         //todo send the log information to the server
     }
 }
