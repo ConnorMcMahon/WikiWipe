@@ -1,12 +1,15 @@
 const ELEMENT_PARENT = document.body;
 const PAGE_DELAY = 1000*.2;
 
-//Wiki-based classes
+//Wikipedia-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
 const ANSWERS_CLASS = 'g mnr-c g-blk';
-const FACTOID_CLASS = "kp-blk _rod _Rqb _RJe"
 const QA_BOX_CLASS = "kp-blk _Jw _thf _Rqb _RJe"
 const SEARCH_RESULTS_CLASS = 'rc';
+
+//Knowledge Graph (potential WikiData) classes
+const FACTOID_CLASS = "kp-blk _rod _Rqb _RJe"
+const KNOWLEDGE_TABLE_ID = "kx"
 
 //General Google DOM ids
 const SEARCH_BOX_ID = 'lst-ib';
@@ -28,6 +31,8 @@ var removeDOMElements = function() {
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+    var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+
     logEntry.numWikiLinksRemoved = 0;
     
     if (knowledgeBoxes) {
@@ -46,7 +51,7 @@ var removeDOMElements = function() {
             
             if (isFactoid){
                 //Find the source in the html
-                var isSourced = answers[i].childNodes[1].childNodes.length > 1;
+                var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 var isWikiData = !isSourced;
 
@@ -81,6 +86,11 @@ var removeDOMElements = function() {
                 logEntry.numWikiLinksRemoved++;           
             }
         }
+    }
+
+    if (knowledgeChart){
+        knowledgeChart.style.setProperty('display', 'none', 'important');
+        logEntry.knowledgeChartRemoved = true;
     }
 
 }
@@ -217,7 +227,7 @@ chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {
         //after a specified ammount of time, page is displayed to the user.
         setTimeout(function() {
             restorePage(observer);
-        }, 1000);
+        }, PAGE_DELAY);
     } else {
         //prevents the observer from removing any more DOM elements
         observer.disconnect()
