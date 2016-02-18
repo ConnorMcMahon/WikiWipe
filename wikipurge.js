@@ -177,8 +177,10 @@ var restorePage = function(observer) {
 var restoreModifications = function() {
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
-    var factoids = document.getElementsByClassName(FACTOID_CLASS);
+    var answers = document.getElementsByClassName(FACTOID_CLASS);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+    var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+    var logEntry = {}
 
     //restores knowledge boxes
     if (knowledgeBoxes) {
@@ -188,9 +190,20 @@ var restoreModifications = function() {
     }
 
     //restores factoids
-    if (factoids) {
-        for(var i = 0; i < factoids.length; i++) {
-            factoids[i].style.setProperty('display', 'block');
+    if (answers) {        
+        for(var i = 0; i < answers.length; i++) {
+            var targetElement = answers[i].childNodes[0];
+            var isFactoid = (targetElement.getAttribute("class") == FACTOID_CLASS);
+            var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
+
+            if (isFactoid){
+                answers[i].style.setProperty('display', 'block');
+            } else if (isQABox) {
+                var questions = targetElement.getElementsByClassName("related-question-pair");
+                for(var j = 0; j < questions.length; j++){
+                    questions[j].style.setProperty('display', 'block');
+                }
+            }
         }
     }
 
@@ -200,6 +213,11 @@ var restoreModifications = function() {
             searchResults[i].style.setProperty('display', 'block');
         }
     }
+
+    if (knowledgeChart) {
+        knowledgeChart.style.setProperty('display', 'block');
+    }
+
 }
 
 //creates the mutation observer that hides wiki related DOM objects
