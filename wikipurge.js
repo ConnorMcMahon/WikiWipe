@@ -25,6 +25,10 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 var logEntry = {};
 var querySent = false;
 
+var hide = function(element) {
+    element.style.setProperty('display', 'none', 'important');
+}
+
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
     //locates any potential dom elements to remove
@@ -38,7 +42,7 @@ var removeDOMElements = function() {
     if (knowledgeBoxes) {
         for(var i = 0; i < knowledgeBoxes.length; i++){
             //hides the knowledge box
-            knowledgeBoxes[i].style.setProperty('display', 'none', 'important');
+            hide(knowledgeBoxes[i]);
         }
         logEntry.removeKnowledgeBox = true;
     }
@@ -57,7 +61,7 @@ var removeDOMElements = function() {
 
                 //hides the factoid if it is from WikiData
                 if (isWikiData) {
-                    answers[i].style.setProperty('display', 'none', 'important');
+                    hide(answers[i]);
                     logEntry.removeFactoid = true;
                 }
             } else if (isQABox) {
@@ -66,7 +70,7 @@ var removeDOMElements = function() {
                     var answerLink = questions[j].getElementsByClassName("_Rm")[0].innerHTML;
                     var isWikiLink = WIKI_REGEX.test(answerLink);
                     if (isWikiLink) {
-                        questions[j].style.setProperty('display', 'none', 'important');
+                        hide(questions[j]);
                     }
                 }
             }
@@ -82,14 +86,14 @@ var removeDOMElements = function() {
             var isWikiLink = WIKI_REGEX.test(linkName);
             //hides the link if it is from wikipedia
             if (isWikiLink){
-                searchResults[i].style.setProperty('display', 'none', 'important');
+                hide(searchResults[i]);
                 logEntry.numWikiLinksRemoved++;           
             }
         }
     }
 
     if (knowledgeChart){
-        knowledgeChart.style.setProperty('display', 'none', 'important');
+        hide(knowledgeChart);
         logEntry.knowledgeChartRemoved = true;
     }
 
