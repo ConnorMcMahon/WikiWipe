@@ -1,0 +1,15 @@
+{
+  "name": "hermes",
+  "version": "1.0.0",
+  "description": "todo: description",
+  "main": "server.js",
+  "scripts": {
+    "start": "node answer_server.js"
+  },
+  "dependencies": {
+    "express": "^4.12.3",
+    "mongodb": "~2.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
