@@ -18,6 +18,10 @@ var addAnswerBox = function(db, message_info, callback) {
     );
 };
 
+app.get('/test', function(req, resp) {
+    console.log("Hello World");
+});
+
 app.post('/store', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
