@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "express": "^4.12.3",
-    "mongodb": "~2.0"
+    "mongodb": "~2.0",
+    "body-parser": "1.15.0"
   },
   "author": "",
   "license": "ISC"
