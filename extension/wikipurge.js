@@ -40,7 +40,6 @@ var removeDOMElements = function() {
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
-    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
 
     logEntry.numWikiLinksRemoved = 0;
@@ -79,20 +78,6 @@ var removeDOMElements = function() {
                 }
             }
 
-        }
-    }
-
-    if (searchResults) {
-        for(var i = 0; i < searchResults.length; i++){
-            //finds the link of the search result
-            var linkName = searchResults[i].childNodes[0].childNodes[0].href
-            //determines if link is from wikipedia using regex
-            var isWikiLink = WIKI_REGEX.test(linkName);
-            //hides the link if it is from wikipedia
-            if (isWikiLink){
-                hide(searchResults[i]);
-                logEntry.numWikiLinksRemoved++;           
-            }
         }
     }
 
@@ -193,7 +178,6 @@ var restoreModifications = function(state) {
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(FACTOID_CLASS);
-    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
 
     //restores knowledge boxes
@@ -220,13 +204,6 @@ var restoreModifications = function(state) {
                     questions[j].style.setProperty('display', 'block');
                 }
             }
-        }
-    }
-
-    //restores search results
-    if (searchResults) {
-        for(var i = 0; i < searchResults.length; i++) {
-            searchResults[i].setAttribute('style', 'display:block');
         }
     }
 
@@ -271,5 +248,4 @@ chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {
         restorePage(observer);
     }, PAGE_DELAY);
 });
-
 
