@@ -18,13 +18,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var addLog = function(db, messageInfo, callback) {
-    var sessionID = new ObjectID(messageInfo.sessionID);
-    var userID = new ObjectID(messageInfo.userID);
     db.collection('sessions').update(
         { "userID": messageInfo.userID,
           "sessionID": messageInfo.sessionID
         },
         {
+            userID: messageInfo.userID,
+            sessionID: messageInfo.sessionID,
             logs: messageInfo.logEntries
         },
         //adds new document if doesn't meet conditions
@@ -43,16 +43,17 @@ var getSessions = function(db, callback) {
     });
 };
 
-var getUserLatestSession = function(db, messageInfo, callback) {
+var getUserLatestSession = function(db, id, callback) {
     var cursor = db.collection('sessions')
-        .find({"userID": messageInfo.userID})
+        .find({"userID": id})
         .sort({"sessionID": -1})
         .limit(1);
-    cursor.each(function(err, doc){
+    cursor.nextObject(function(err, doc){
         if (err) {
             console.log(err);
         } else {
             callback(doc);
+            return;
         }
     });
 };
@@ -78,7 +79,7 @@ router.get('/getLatestSession', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
         console.log("Connect correctly to server.");
-        getUserLatestSession(db, function(doc) {
+        getUserLatestSession(db, req.query.id, function(doc) {
             db.close();
             resp.send(doc);
         });
