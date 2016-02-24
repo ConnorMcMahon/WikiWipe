@@ -1,10 +1,11 @@
 const ELEMENT_PARENT = document.body;
-const PAGE_DELAY = 1000*.2;
+const PAGE_DELAY = 1000*.3;
 
 //Wikipedia-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
 const ANSWERS_CLASS = 'g mnr-c g-blk';
-const QA_BOX_CLASS = "kp-blk _Jw _thf _Rqb _RJe"
+const QA_BOX_CLASS = 'kp-blk _Jw _thf _Rqb _RJe'
+const CONTENT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 
 //Knowledge Graph (potential WikiData) classes
@@ -24,13 +25,18 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 var logEntry = {};
 var querySent = false;
+//Set to remove all by default
+var experimentState = "no_UCG"
 
 var hide = function(element) {
-    element.style.setProperty('display', 'none', 'important');
+    element.style.setProperty('display', 'none');
 }
 
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
+    if(experimentState === "unchanged"){
+        return;
+    }
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
@@ -53,14 +59,12 @@ var removeDOMElements = function() {
             var isFactoid = (targetElement.getAttribute("class") == FACTOID_CLASS);
             var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
             
-            if (isFactoid){
+            if (isFactoid && experimentState === "no_UCG"){
                 //Find the source in the html
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
-                var isWikiData = !isSourced;
-
                 //hides the factoid if it is from WikiData
-                if (isWikiData) {
+                if (!isSourced) {
                     hide(answers[i]);
                     logEntry.removeFactoid = true;
                 }
@@ -92,7 +96,7 @@ var removeDOMElements = function() {
         }
     }
 
-    if (knowledgeChart){
+    if (knowledgeChart && experimentState === "no_UCG"){
         hide(knowledgeChart);
         logEntry.knowledgeChartRemoved = true;
     }
@@ -178,31 +182,39 @@ var restorePage = function(observer) {
     }, 100);  
 }
 
-var restoreModifications = function() {
+var restoreModifications = function(state) {
+    console.log(state);
+    //if all UCG content is to be removed, nothing needs to be restored
+    if (state === "no_UCG"){
+        return;
+    }
+    
+
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(FACTOID_CLASS);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
-    var logEntry = {}
 
     //restores knowledge boxes
-    if (knowledgeBoxes) {
+    if (state === "unchanged" && knowledgeBoxes) {
         for(var i = 0; i < knowledgeBoxes.length; i++) {
             knowledgeBoxes[i].style.setProperty('display', 'block');
         }
+
     }
 
-    //restores factoids
+    //restores factoids and if state is unchanged then also QA Boxes
     if (answers) {        
         for(var i = 0; i < answers.length; i++) {
             var targetElement = answers[i].childNodes[0];
-            var isFactoid = (targetElement.getAttribute("class") == FACTOID_CLASS);
-            var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
+            var isFactoid = (targetElement.getAttribute("class") === FACTOID_CLASS);
+            var isQABox = (targetElement.getAttribute("class") === QA_BOX_CLASS);
+            console.log(answers[i]);
 
             if (isFactoid){
                 answers[i].style.setProperty('display', 'block');
-            } else if (isQABox) {
+            } else if (state === "unchanged" && isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
                 for(var j = 0; j < questions.length; j++){
                     questions[j].style.setProperty('display', 'block');
@@ -214,14 +226,14 @@ var restoreModifications = function() {
     //restores search results
     if (searchResults) {
         for(var i = 0; i < searchResults.length; i++) {
-            searchResults[i].style.setProperty('display', 'block');
+            searchResults[i].setAttribute('style', 'display:block');
         }
     }
 
+    //Restores knowledge chart
     if (knowledgeChart) {
         knowledgeChart.style.setProperty('display', 'block');
     }
-
 }
 
 //creates the mutation observer that hides wiki related DOM objects
@@ -231,37 +243,33 @@ observer.observe(ELEMENT_PARENT, {
 });
 
 //Get the value of whether the script is running
-chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {
-    //if script is running, run the script
-    if (response == true) {
-        //establish the listeners on the loggers
-        if (document.readyState != 'loading'){
-            initializeLoggingListeners();
-        } else {
-            document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
-        }
+chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {    
+    //Set experiment state
+    experimentState = response;
 
-        //Ensure that if the page is exitewd out of it is logged
-        window.onbeforeunload = function() {
-            queryEnd(null);
-        };
-
-        //after a specified ammount of time, page is displayed to the user.
-        setTimeout(function() {
-            restorePage(observer);
-        }, PAGE_DELAY);
+    //establish the listeners on the loggers
+    if (document.readyState != 'loading'){
+        initializeLoggingListeners();
     } else {
-        //prevents the observer from removing any more DOM elements
-        observer.disconnect()
-
-        //restores hidden DOM elements
-        restoreModifications();
-
-        //after a specified ammount of time, page is displayed to the user.
-        setTimeout(function() {
-            restorePage(observer);
-        }, PAGE_DELAY);
+        document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
     }
+
+    //Ensure that if the page is exitewd out of it is logged
+    window.onbeforeunload = function() {
+        queryEnd(null);
+    };
+
+    //stops future modifications from being made if not supposed to modify
+    if(response === "unchanged") {
+        observer.disconnect();
+    }
+
+    restoreModifications(response);
+
+    //after a specified ammount of time, page is displayed to the user.
+    setTimeout(function() {
+        restorePage(observer);
+    }, PAGE_DELAY);
 });
 
 

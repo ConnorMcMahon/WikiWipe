@@ -1,4 +1,7 @@
-var extensionOn = true;
+var extensionStates = ["no_wiki", "no_UCG", "unchanged"];
+var icons = ["icon.png", "icon2.png", "icon3.png"];
+
+var stateCounter = 0;
 
 var getIcon = function(extensionOn){
 	var path;
@@ -13,8 +16,8 @@ var getIcon = function(extensionOn){
 chrome.omnibox.setDefaultSuggestion({description: "Autofill disabled"});
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-	extensionOn = !extensionOn;
-	iconPath = getIcon(extensionOn);
+	stateCounter = (stateCounter + 1) % 3; 
+	iconPath = icons[stateCounter];
 	chrome.browserAction.setIcon({
 		path: iconPath
 	});
@@ -22,6 +25,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 chrome.runtime.onMessage.addListener(function (req, send, sendResponse) {
     if (req.cmd == "getExtensionState") {
-        sendResponse(extensionOn);
+        sendResponse(extensionStates[stateCounter]);
     }
 });
