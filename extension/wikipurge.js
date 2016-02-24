@@ -9,7 +9,7 @@ const CONTENT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 
 //Knowledge Graph (potential WikiData) classes
-const FACTOID_CLASS = "kp-blk _rod _Rqb _RJe"
+const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe"
 const KNOWLEDGE_TABLE_ID = "kx"
 
 //General Google DOM ids
@@ -34,56 +34,60 @@ var hide = function(element) {
 
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
-    if(experimentState === "unchanged"){
-        return;
-    }
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
-
-    logEntry.numWikiLinksRemoved = 0;
     
     if (knowledgeBoxes) {
+        logEntry.knowledgeBoxPresent = true;
         for(var i = 0; i < knowledgeBoxes.length; i++){
             //hides the knowledge box
-            hide(knowledgeBoxes[i]);
-        }
-        logEntry.removeKnowledgeBox = true;
+            if(experimentState !== "unchanged"){
+                hide(knowledgeBoxes[i]);
+                logEntry.removeKnowledgeBox = true;
+            }
+        }       
     }
 
     if (answers) {
         for(var i = 0; i < answers.length; i++){
             var targetElement = answers[i].childNodes[0];
-            var isFactoid = (targetElement.getAttribute("class") == FACTOID_CLASS);
+            var isAnswerBox = (targetElement.getAttribute("class") == ANSWER_BOX_CLASS);
             var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
             
-            if (isFactoid && experimentState === "no_UCG"){
+            if (isAnswerBox) {
+                logEntry.answerBoxPresent = true;
                 //Find the source in the html
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
-                //hides the factoid if it is from WikiData
-                if (!isSourced) {
+                //hides the answer box if it is from WikiData
+                if (!isSourced && experimentState === "no_UCG") {
                     hide(answers[i]);
-                    logEntry.removeFactoid = true;
+                    logEntry.removeAnswerBox = true;
                 }
             } else if (isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
+                logEntry.questionsFound = questions.length;
+                logEntry.questionsRemoved = 0;
                 for(var j = 0; j < questions.length; j++){
                     var answerLink = questions[j].getElementsByClassName("_Rm")[0].innerHTML;
                     var isWikiLink = WIKI_REGEX.test(answerLink);
-                    if (isWikiLink) {
+                    if (isWikiLink && experimentState !== "unchanged") {
                         hide(questions[j]);
+                        logEntry.questionsRemoved += 1
                     }
                 }
             }
-
         }
     }
 
-    if (knowledgeChart && experimentState === "no_UCG"){
-        hide(knowledgeChart);
-        logEntry.knowledgeChartRemoved = true;
+    if (knowledgeChart){
+        logEntry.knowledgeChartPresent = true;
+        if(experimentState === "no_UCG"){
+            hide(knowledgeChart);
+            logEntry.knowledgeChartRemoved = true;
+        }
     }
 
 }
@@ -125,6 +129,7 @@ var initializeLoggingListeners = function(){
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
     
+
     var queryEnders = [searchBox, voiceSearch, suggestedQuery, originalQuery];
     queryEnders.forEach(function(element, index, array){
         if (element != null){
@@ -174,10 +179,9 @@ var restoreModifications = function(state) {
         return;
     }
     
-
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
-    var answers = document.getElementsByClassName(FACTOID_CLASS);
+    var answers = document.getElementsByClassName(ANSWER_BOX_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
 
     //restores knowledge boxes
@@ -185,24 +189,26 @@ var restoreModifications = function(state) {
         for(var i = 0; i < knowledgeBoxes.length; i++) {
             knowledgeBoxes[i].style.setProperty('display', 'block');
         }
-
+        logEntry.removeKnowledgeBox = false;
     }
 
-    //restores factoids and if state is unchanged then also QA Boxes
+    //restores answer boxes and if state is unchanged then also QA Boxes
     if (answers) {        
         for(var i = 0; i < answers.length; i++) {
             var targetElement = answers[i].childNodes[0];
-            var isFactoid = (targetElement.getAttribute("class") === FACTOID_CLASS);
+            var isAnswerBox = (targetElement.getAttribute("class") === ANSWER_BOX_CLASS);
             var isQABox = (targetElement.getAttribute("class") === QA_BOX_CLASS);
             console.log(answers[i]);
 
-            if (isFactoid){
+            if (isAnswerBox){
+                logEntry.removeAnswerBox = false;
                 answers[i].style.setProperty('display', 'block');
             } else if (state === "unchanged" && isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
                 for(var j = 0; j < questions.length; j++){
                     questions[j].style.setProperty('display', 'block');
                 }
+                logEntry.questionsRemoved = 0;
             }
         }
     }
