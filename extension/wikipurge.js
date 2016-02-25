@@ -21,6 +21,13 @@ const GOOGLE_BODY = 'rcnt';
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
+const SERVER = "http://wikiwipe.cs.umn.edu"
+const SESSION_TIMEOUT = 30 * 60 * 1000 //30 minutes
+
+var userID = 10;
+
+
+
 //Global Vars
 
 var logEntry = {};
@@ -112,12 +119,42 @@ var queryEnd = function(evt) {
         });
         
         var searchBox = document.getElementById(SEARCH_BOX_ID);
-        logEntry.queryName = searchBox.value
-        alert(JSON.stringify(logEntry));
+        logEntry.queryName = searchBox.value;
+        logEntry.timestamp = Date.now();
+        
+        //updates the database with this new log
+        jQuery.ajax({
+            type: "GET",
+            url: SERVER + "/getLatestSession/?id=" + userID,
+            success: function(data) {
+                if (data) {
+                    //grab last time this session was updated, and starts a new session if it has expired
+                    var lastSessionTime = data.logs.slice(-1)[0].timestamp;
+                    if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
+                        data.logs = [logEntry];
+                        data.sessionID += 1
+                    } else {
+                        data.logs.push(logEntry);
+                    }
+                } else {
+                    data = {
+                        "userID": userID,
+                        "sessionID": 1,
+                        "logs": [logEntry]
+                    }
+                }
 
-        logEntry = {}
-        querySent = true;
-        //todo send the log information to the server
+
+                jQuery.ajax({
+                    type: "POST",
+                    url: SERVER + "/addLog",
+                    data: data,
+                    success: function(data){
+                        querySent = true;
+                    }
+                });
+            }
+        });
     }
 }
 
