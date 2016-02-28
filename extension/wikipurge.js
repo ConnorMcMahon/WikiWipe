@@ -3,14 +3,15 @@ const PAGE_DELAY = 1000*.3;
 
 //Wikipedia-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
-const ANSWERS_CLASS = 'g mnr-c g-blk';
 const QA_BOX_CLASS = 'kp-blk _Jw _thf _Rqb _RJe'
-const CONTENT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 
 //Knowledge Graph (potential WikiData) classes
+const ANSWERS_CLASS = 'g mnr-c g-blk';
 const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe"
 const KNOWLEDGE_TABLE_ID = "kx"
+const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe'
+
 
 //General Google DOM ids
 const SEARCH_BOX_ID = 'lst-ib';
@@ -18,6 +19,7 @@ const DID_YOU_MEAN_CLASS = 'spell';
 const ORIG_SPELLING_CLASS = 'spell_orig';
 const VOICE_SEARCH_ID = 'gs_st0';
 const GOOGLE_BODY = 'rcnt';
+const CITE_CLASS = '_Rm'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
@@ -62,6 +64,7 @@ var removeDOMElements = function() {
             var targetElement = answers[i].childNodes[0];
             var isAnswerBox = (targetElement.getAttribute("class") == ANSWER_BOX_CLASS);
             var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
+            var isContextAnswer = (targetElement.getAttribute("class") == CONTEXT_ANSWER_CLASS);
             
             if (isAnswerBox) {
                 logEntry.answerBoxPresent = true;
@@ -78,12 +81,20 @@ var removeDOMElements = function() {
                 logEntry.questionsFound = questions.length;
                 logEntry.questionsRemoved = 0;
                 for(var j = 0; j < questions.length; j++){
-                    var answerLink = questions[j].getElementsByClassName("_Rm")[0].innerHTML;
+                    var answerLink = questions[j].getElementsByClassName(CITE_CLASS)[0].innerHTML;
                     var isWikiLink = WIKI_REGEX.test(answerLink);
                     if (isWikiLink && experimentState !== "unchanged") {
                         hide(questions[j]);
                         logEntry.questionsRemoved += 1
                     }
+                }
+            } else if (isContextAnswer) {
+                logEntry.contextAnswerBoxPresent = true;
+                var hyperLink = answers[i].getElementsByClassName("r")[0].childNodes[0];
+                var isWikiLink = WIKI_REGEX.test(hyperLink.getAttribute('href'));
+                if (isWikiLink && experimentState !== "unchanged") {
+                    hide(answers[i]);
+                    logEntry.removeContextAnswerBox = true;
                 }
             }
         }
@@ -123,38 +134,38 @@ var queryEnd = function(evt) {
         logEntry.timestamp = Date.now();
         
         //updates the database with this new log
-        jQuery.ajax({
-            type: "GET",
-            url: SERVER + "/getLatestSession/?id=" + userID,
-            success: function(data) {
-                if (data) {
-                    //grab last time this session was updated, and starts a new session if it has expired
-                    var lastSessionTime = data.logs.slice(-1)[0].timestamp;
-                    if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
-                        data.logs = [logEntry];
-                        data.sessionID += 1
-                    } else {
-                        data.logs.push(logEntry);
-                    }
-                } else {
-                    data = {
-                        "userID": userID,
-                        "sessionID": 1,
-                        "logs": [logEntry]
-                    }
-                }
+        // jQuery.ajax({
+        //     type: "GET",
+        //     url: SERVER + "/getLatestSession/?id=" + userID,
+        //     success: function(data) {
+        //         if (data) {
+        //             //grab last time this session was updated, and starts a new session if it has expired
+        //             var lastSessionTime = data.logs.slice(-1)[0].timestamp;
+        //             if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
+        //                 data.logs = [logEntry];
+        //                 data.sessionID += 1
+        //             } else {
+        //                 data.logs.push(logEntry);
+        //             }
+        //         } else {
+        //             data = {
+        //                 "userID": userID,
+        //                 "sessionID": 1,
+        //                 "logs": [logEntry]
+        //             }
+        //         }
 
 
-                jQuery.ajax({
-                    type: "POST",
-                    url: SERVER + "/addLog",
-                    data: data,
-                    success: function(data){
-                        querySent = true;
-                    }
-                });
-            }
-        });
+        //         jQuery.ajax({
+        //             type: "POST",
+        //             url: SERVER + "/addLog",
+        //             data: data,
+        //             success: function(data){
+        //                 querySent = true;
+        //             }
+        //         });
+        //     }
+        // });
     }
 }
 
@@ -235,7 +246,7 @@ var restoreModifications = function(state) {
             var targetElement = answers[i].childNodes[0];
             var isAnswerBox = (targetElement.getAttribute("class") === ANSWER_BOX_CLASS);
             var isQABox = (targetElement.getAttribute("class") === QA_BOX_CLASS);
-            console.log(answers[i]);
+            var isContextAnswer = (targetElement.getAttribute("class") === CONTEXT_ANSWER_CLASS);
 
             if (isAnswerBox){
                 logEntry.removeAnswerBox = false;
@@ -246,6 +257,9 @@ var restoreModifications = function(state) {
                     questions[j].style.setProperty('display', 'block');
                 }
                 logEntry.questionsRemoved = 0;
+            } else if (state === "unchanged" && isContextAnswer){
+                logEntry.contextAnswerBoxPresent = false;
+                answers[i].style.setProperty('display', 'block');
             }
         }
     }
