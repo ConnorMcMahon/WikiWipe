@@ -15,6 +15,10 @@
       "matches": ["*://www.google.com/*"],
       "js": ["jquery.js", "wikipurge.js"],
       "css": ["hide.css"]
+    },
+    {
+      "matches": ["*://*.wikipedia.org/*"],
+      "js": ["wikirecord.js"]
     }
   ],
   "omnibox": {"keyword": "*"},
