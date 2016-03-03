@@ -2,6 +2,7 @@ var http = require('http');
 var express = require('express');
 var assert = require('assert');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 var ObjectID = require('mongodb').ObjectID;
 
 var app = express();
@@ -16,6 +17,7 @@ var url = 'mongodb://localhost:27017/answerbox';
 //Allows app to parse post body request
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
 
 var addLog = function(db, collection, messageInfo, callback) {
     console.dir(messageInfo);
@@ -58,9 +60,6 @@ var getUserLatestSession = function(db, collection, id, callback) {
         }
     });
 };
-
-
-
 
 
 router.get('/test', function(req, resp) {
