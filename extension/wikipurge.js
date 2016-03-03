@@ -24,7 +24,7 @@ const CITE_CLASS = '_Rm'
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 const SERVER = "https://wikiwipe.grouplens.org"
-const SESSION_TIMEOUT = 30 * 60 * 1000 //30 minutes
+const SESSION_TIMEOUT = 30 * 60 //30 minutes
 
 var userID = 10;
 
