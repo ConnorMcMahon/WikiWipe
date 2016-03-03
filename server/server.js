@@ -17,7 +17,13 @@ var url = 'mongodb://localhost:27017/answerbox';
 //Allows app to parse post body request
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({credentials: true, origin: true}));
+
+app.use(function(req, res, next) {
+      res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+          next();
+});
 
 var addLog = function(db, collection, messageInfo, callback) {
     console.dir(messageInfo);
@@ -28,7 +34,7 @@ var addLog = function(db, collection, messageInfo, callback) {
         {
             userID: messageInfo.userID,
             sessionID: messageInfo.sessionID,
-            logs: messageInfo.logEntries
+            logs: messageInfo.logs
         },
         //adds new document if doesn't meet conditions
         {upsert: true}
