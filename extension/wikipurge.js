@@ -139,13 +139,17 @@ var queryEnd = function(evt) {
             url: SERVER + "/getLatestSession/?id=" + userID,
             success: function(data) {
                 if (data) {
-                    //grab last time this session was updated, and starts a new session if it has expired
-                    var lastSessionTime = data.logs.slice(-1)[0].timestamp;
-                    if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
-                        data.logs = [logEntry];
-                        data.sessionID += 1
+                    if(data.logs) {
+                        //grab last time this session was updated, and starts a new session if it has expired
+                        var lastSessionTime = data.logs.slice(-1)[0].timestamp;
+                        if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
+                            data.logs = [logEntry];
+                            data.sessionID += 1
+                        } else {
+                            data.logs.push(logEntry);
+                        }
                     } else {
-                        data.logs.push(logEntry);
+                        data.logs = [logEntry];
                     }
                 } else {
                     data = {
@@ -154,7 +158,7 @@ var queryEnd = function(evt) {
                         "logs": [logEntry]
                     }
                 }
-
+                console.log(data);
 
                 jQuery.ajax({
                     type: "POST",
@@ -162,6 +166,7 @@ var queryEnd = function(evt) {
                     data: data,
                     success: function(data){
                         querySent = true;
+                        console.log("finished update");
                     }
                 });
             }
