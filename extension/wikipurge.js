@@ -23,7 +23,7 @@ const CITE_CLASS = '_Rm'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
-const SERVER = "http://wikiwipe.cs.umn.edu"
+const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 * 1000 //30 minutes
 
 var userID = 10;
@@ -133,39 +133,39 @@ var queryEnd = function(evt) {
         logEntry.queryName = searchBox.value;
         logEntry.timestamp = Date.now();
         
-        //updates the database with this new log
-        // jQuery.ajax({
-        //     type: "GET",
-        //     url: SERVER + "/getLatestSession/?id=" + userID,
-        //     success: function(data) {
-        //         if (data) {
-        //             //grab last time this session was updated, and starts a new session if it has expired
-        //             var lastSessionTime = data.logs.slice(-1)[0].timestamp;
-        //             if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
-        //                 data.logs = [logEntry];
-        //                 data.sessionID += 1
-        //             } else {
-        //                 data.logs.push(logEntry);
-        //             }
-        //         } else {
-        //             data = {
-        //                 "userID": userID,
-        //                 "sessionID": 1,
-        //                 "logs": [logEntry]
-        //             }
-        //         }
+        // updates the database with this new log
+        jQuery.ajax({
+            type: "GET",
+            url: SERVER + "/getLatestSession/?id=" + userID,
+            success: function(data) {
+                if (data) {
+                    //grab last time this session was updated, and starts a new session if it has expired
+                    var lastSessionTime = data.logs.slice(-1)[0].timestamp;
+                    if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
+                        data.logs = [logEntry];
+                        data.sessionID += 1
+                    } else {
+                        data.logs.push(logEntry);
+                    }
+                } else {
+                    data = {
+                        "userID": userID,
+                        "sessionID": 1,
+                        "logs": [logEntry]
+                    }
+                }
 
 
-        //         jQuery.ajax({
-        //             type: "POST",
-        //             url: SERVER + "/addLog",
-        //             data: data,
-        //             success: function(data){
-        //                 querySent = true;
-        //             }
-        //         });
-        //     }
-        // });
+                jQuery.ajax({
+                    type: "POST",
+                    url: SERVER + "/addLog",
+                    data: data,
+                    success: function(data){
+                        querySent = true;
+                    }
+                });
+            }
+        });
     }
 }
 

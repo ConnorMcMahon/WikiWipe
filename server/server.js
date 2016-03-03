@@ -18,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var addLog = function(db, collection, messageInfo, callback) {
+    console.dir(messageInfo);
     db.collection(collection).update(
         { "userID": messageInfo.userID,
           "sessionID": messageInfo.sessionID
