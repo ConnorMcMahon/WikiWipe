@@ -293,9 +293,10 @@ chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {
         document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
     }
 
-    //Ensure that if the page is exitewd out of it is logged
-    window.onbeforeunload = function() {
-        queryEnd(null);
+    //Ensure that if the page is exited out of it is logged
+    window.addEventListener("onbeforeunload", function(evt) {
+        queryEnd(evt);
+        return null;
     };
 
     //stops future modifications from being made if not supposed to modify
