@@ -5,7 +5,7 @@
   "description": "This extension attempts to remove wikipedia information",
   "version": "0.5",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["jquery.js", "serverconstants.js", "background.js"]
   },
   "browser_action": {
     "default_icon": "icon.png"
@@ -13,16 +13,17 @@
   "content_scripts": [
     {
       "matches": ["*://www.google.com/*"],
-      "js": ["jquery.js", "wikipurge.js"],
+      "js": ["jquery.js", "serverconstants.js", "wikipurge.js"],
       "css": ["hide.css"]
     },
     {
       "matches": ["*://*.wikipedia.org/*"],
-      "js": ["jquery.js", "wikirecord.js"]
+      "js": ["jquery.js", "serverconstants.js", "wikirecord.js"]
     }
   ],
   "omnibox": {"keyword": "*"},
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ]
 }
