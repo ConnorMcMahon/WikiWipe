@@ -24,9 +24,9 @@ const CITE_CLASS = '_Rm'
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 const SERVER = "https://wikiwipe.grouplens.org"
-const SESSION_TIMEOUT = 30 * 60 //30 minutes
+const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
 
-var userID = 10;
+var userID = 3;
 
 
 
@@ -144,8 +144,9 @@ var queryEnd = function(evt) {
                         var lastSessionTime = data.logs.slice(-1)[0].timestamp;
                         if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
                             data.logs = [logEntry];
-                            data.sessionID += 1
+                            data.sessionID = parseInt(data.sessionID) + 1
                         } else {
+                            //data.logs = JSON.parse(data.logs);
                             data.logs.push(logEntry);
                         }
                     } else {
@@ -297,7 +298,7 @@ chrome.extension.sendMessage({ cmd: "getExtensionState" }, function (response) {
     window.addEventListener("onbeforeunload", function(evt) {
         queryEnd(evt);
         return null;
-    };
+    });
 
     //stops future modifications from being made if not supposed to modify
     if(response === "unchanged") {
