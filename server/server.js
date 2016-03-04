@@ -69,11 +69,11 @@ var getUserLatestSession = function(db, collection, id, callback) {
 
 var getGreatestUserID = function(db, callback) {
     var cursor = db.collection("users")
-                   .find({"userID": id})
+                   .find()
                    .sort({"userID": -1})
                    .limit(1);
     cursor.nextObject(function(err, doc){
-        if(err) {
+        if(err || !doc) {
             console.log("found no users");
             callback(db, 1);
             return;
@@ -98,7 +98,7 @@ router.get('/getNewUserID', function(req, resp) {
         getGreatestUserID(db, function(db, id) {
             addUserID(db, id);
             db.close();
-            resp.send(id);
+            resp.send(String(id));
         });
     });
 });
