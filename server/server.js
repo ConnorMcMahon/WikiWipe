@@ -67,6 +67,41 @@ var getUserLatestSession = function(db, collection, id, callback) {
     });
 };
 
+var getGreatestUserID = function(db, callback) {
+    var cursor = db.collection("users")
+                   .find({"userID": id})
+                   .sort({"userID": -1})
+                   .limit(1);
+    cursor.nextObject(function(err, doc){
+        if(err) {
+            console.log("found no users");
+            callback(db, 1);
+            return;
+        } else {
+            callback(db, doc.userID+1);
+            return;
+        }
+    });
+}
+
+var addUserID = function(db, id) {
+    db.collection("users").insert({
+        userID: id,
+        timeStamp: Date.now()
+    });
+}
+
+
+router.get('/getNewUserID', function(req, resp) {
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        getGreatestUserID(db, function(db, id) {
+            addUserID(db, id);
+            db.close();
+            resp.send(id);
+        });
+    });
+});
 
 router.get('/test', function(req, resp) {
     console.log("Hello World");
@@ -75,7 +110,6 @@ router.get('/test', function(req, resp) {
 router.post('/addLog', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         addLog(db, "search_session", req.body, function() {
             db.close();
             resp.send("Added");
@@ -86,7 +120,6 @@ router.post('/addLog', function(req, resp) {
 router.get('/getLatestSession', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         getUserLatestSession(db, "search_session", req.query.id, function(doc) {
             db.close();
             resp.send(doc);
@@ -97,7 +130,6 @@ router.get('/getLatestSession', function(req, resp) {
 router.get('/getSessions', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         getSessions(db, "search_session", function(docs) {
             db.close();
             resp.send(docs);
@@ -108,7 +140,6 @@ router.get('/getSessions', function(req, resp) {
 router.post('/addWikiLog', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         addLog(db, "wiki_session", req.body, function() {
             db.close();
             resp.send("Added");
@@ -119,7 +150,6 @@ router.post('/addWikiLog', function(req, resp) {
 router.get('/getLatestWikiSession', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         getUserLatestSession(db, "wiki_session", req.query.id, function(doc) {
             db.close();
             resp.send(doc);
@@ -130,7 +160,6 @@ router.get('/getLatestWikiSession', function(req, resp) {
 router.get('/getWikiSessions', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        console.log("Connect correctly to server.");
         getSessions(db, "wiki_session", function(docs) {
             db.close();
             resp.send(docs);
