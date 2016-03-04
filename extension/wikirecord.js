@@ -1,3 +1,6 @@
+const SERVER = "https://wikiwipe.grouplens.org"
+const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
+
 logEntry = 
 	{ "url": document.URL, 
 	  "timestamp": Date.now()
@@ -17,11 +20,17 @@ jQuery.ajax({
                 var lastSessionTime = data.logs.slice(-1)[0].timestamp;
                 if ((logEntry.timestamp - lastSessionTime) > SESSION_TIMEOUT){
                     data.logs = [logEntry];
-                    data.sessionID += 1
+                    data.sessionID = parseInt(data.sessionID) + 1
                 } else {
                     data.logs.push(logEntry);
                 }
             } else {
+            	//if data.logs is returned as string, parse
+            	try {
+            		data.logs = JSON.parse(data.logs);
+            	} catch(err) {
+            		console.log(err);
+            	}
                 data.logs = [logEntry];
             }
         } else {

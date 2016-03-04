@@ -18,7 +18,7 @@
     },
     {
       "matches": ["*://*.wikipedia.org/*"],
-      "js": ["wikirecord.js"]
+      "js": ["jquery.js", "wikirecord.js"]
     }
   ],
   "omnibox": {"keyword": "*"},
