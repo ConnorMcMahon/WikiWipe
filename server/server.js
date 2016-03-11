@@ -28,16 +28,13 @@ app.use(function(req, res, next) {
 var addLog = function(db, collection, messageInfo, callback) {
     console.dir(messageInfo);
     db.collection(collection).update(
-        { "userID": messageInfo.userID,
-          "sessionID": messageInfo.sessionID
+        { 
+            "userID": messageInfo.userID,
+            "sessionID": messageInfo.sessionID
         },
         {
-            userID: messageInfo.userID,
-            sessionID: messageInfo.sessionID,
-            logs: messageInfo.logs
-        },
-        //adds new document if doesn't meet conditions
-        {upsert: true}
+            $push: { logs: messageInfo.log }
+        }
     );
     callback();
 }
