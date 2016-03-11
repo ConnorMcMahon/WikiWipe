@@ -117,12 +117,18 @@ router.post('/addLog', function(req, resp) {
     });
 });
 
-router.get('/getLatestSession', function(req, resp) {
+router.get('/getLatestSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        getUserLatestSession(db, "search_session", req.query.id, function(doc) {
+        getUserLatestSession(db, "search_session", req.query.id, function(data) {
             db.close();
-            resp.send(doc);
+            var responseObject = {};
+            if(data.logs) {
+                var lastSession = data.logs.slice(-1)[0];
+                responseObject.lastTimestamp = lastSession.timestamp;
+                responseObject.id = lastSession.sessionID;
+            }
+            resp.send(responseObject);
         });
     });
 });
@@ -147,12 +153,17 @@ router.post('/addWikiLog', function(req, resp) {
     });
 });
 
-router.get('/getLatestWikiSession', function(req, resp) {
+router.get('/getLatestWikiSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        getUserLatestSession(db, "wiki_session", req.query.id, function(doc) {
+        getUserLatestSession(db, "wiki_session", req.query.id, function(data) {
             db.close();
-            resp.send(doc);
+            if(data.logs) {
+                var lastSession = data.logs.slice(-1)[0];
+                responseObject.lastTimestamp = lastSession.timestamp;
+                responseObject.id = lastSession.sessionID;
+            }
+            resp.send(responseObject);
         });
     });
 });
