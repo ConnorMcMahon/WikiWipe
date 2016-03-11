@@ -126,7 +126,7 @@ router.get('/getLatestSessionID', function(req, resp) {
             if(data.logs) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
-                responseObject.id = lastSession.sessionID;
+                responseObject.id = data.sessionID;
             }
             resp.send(responseObject);
         });
@@ -161,7 +161,7 @@ router.get('/getLatestWikiSessionID', function(req, resp) {
             if(data.logs) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
-                responseObject.id = lastSession.sessionID;
+                responseObject.id = data.sessionID;
             }
             resp.send(responseObject);
         });
