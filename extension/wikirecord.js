@@ -1,8 +1,7 @@
-
 logEntry = 
-	{ "url": document.URL, 
-	  "timestamp": Date.now()
-	};
+    { "url": document.URL, 
+      "timestamp": Date.now()
+    };
 
 
 console.log(logEntry);
@@ -11,6 +10,9 @@ console.log(logEntry);
 chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {    
     //Set userID
     logEntry.userID = response.userID;
+    getLatestSessionID("wiki", logEntry.userID, function(id){
+        logEntry.sessionID = id;
+        updateServer("wiki", logEntry);
+    });
 
-	updateServer("wiki", logEntry);
 });

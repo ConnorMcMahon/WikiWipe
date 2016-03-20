@@ -162,9 +162,6 @@ var initializeLoggingListeners = function(){
         element.addEventListener("click", function(evt){
             //todo log which link was picked
             logEntry.linkRank = index + 1;
-            if (logEntry.numWikiLinksRemoved != null){
-                logEntry.linkRank -= logEntry.numWikiLinksRemoved;
-            }
             logEntry.linkURL = element.childNodes[0].getAttribute("data-href");
             queryEnd(evt);
         });
@@ -245,7 +242,11 @@ observer.observe(ELEMENT_PARENT, {
 chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {    
     //Set experiment state
     experimentState = response.experimentState;
-    userID = response.userID
+    userID = response.userID;
+    logEntry.userID = userID;
+    getLatestSessionID("search", userID, function(id) {
+        logEntry.sessionID = id; 
+    });
 
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
@@ -255,10 +256,10 @@ chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {
     }
 
     //Ensure that if the page is exited out of it is logged
-    window.addEventListener("onbeforeunload", function(evt) {
-        queryEnd(evt);
-        return null;
-    });
+    // window.addEventListener("onbeforeunload", function(evt) {
+    //     queryEnd(evt);
+    //     return null;
+    // });
 
     //stops future modifications from being made if not supposed to modify
     if(experimentState === "unchanged") {
