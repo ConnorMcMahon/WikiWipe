@@ -31,6 +31,7 @@ var addLog = function(db, collection, messageInfo, callback) {
         { 
             "userID": messageInfo.userID,
             "sessionID": messageInfo.sessionID
+            "experimentState": messageInfo.experimentState
         },
         {
             $push: { logs: messageInfo.log }
@@ -124,6 +125,7 @@ router.get('/getLatestSessionID', function(req, resp) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
                 responseObject.id = data.sessionID;
+                responseObject.experimentState = data.experimentState;
             }
             resp.send(responseObject);
         });
