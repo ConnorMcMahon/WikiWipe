@@ -161,6 +161,7 @@ router.get('/getLatestWikiSessionID', function(req, resp) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
                 responseObject.id = data.sessionID;
+                responseObject.experimentState = data.experimentState;
             }
             resp.send(responseObject);
         });
