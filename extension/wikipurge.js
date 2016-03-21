@@ -28,7 +28,7 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 //Global Vars
 
 var logEntry = {};
-var querySent = false;
+var linkClicked = false;
 //Set to remove all by default
 var experimentState = "no_UCG"
 var userID;
@@ -118,20 +118,12 @@ var observer = new MutationObserver(function(mutations) {
 //FUNCTIONS
 
 //A listener function that sends logging information
-var queryEnd = function(evt) {
-    if (!querySent){
-        observer.observe(ELEMENT_PARENT, {
-            childList: true,
-            subtree: true
-        });
-        
-        var searchBox = document.getElementById(SEARCH_BOX_ID);
-        logEntry.queryName = searchBox.value;
-        logEntry.timestamp = Date.now();
+var queryEnd = function(evt) {     
+    var searchBox = document.getElementById(SEARCH_BOX_ID);
+    logEntry.queryName = searchBox.value;
+    logEntry.timestamp = Date.now();
 
-        updateServer("search", logEntry);
-
-    }
+    updateServer("search", logEntry);
 }
 
 //Finds all entities that could indicate a new search query after page loads
@@ -159,6 +151,7 @@ var initializeLoggingListeners = function(){
 
     searchLinks.forEach(function(element, index, array){
         element.addEventListener("click", function(evt){
+            linkClicked = true;
             //todo log which link was picked
             logEntry.linkRank = index + 1;
             logEntry.linkURL = element.childNodes[0].getAttribute("data-href");
@@ -260,6 +253,18 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
 
         restoreModifications(experimentState);
 
+        //Ensure that if the page is exited out of it is logged
+        //uses beforeunload instead of unload to allow click event to occur
+        window.addEventListener("beforeunload", function(evt) {
+            queryEnd(evt);
+        });
+
+        
+        // window.addEventListener("unload", function(evt) {
+        //     queryEnd(evt);
+        //     return null;
+        // });
+
         //after a specified ammount of time, page is displayed to the user.
         setTimeout(function() {
             restorePage(observer);
@@ -268,11 +273,6 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
 
 
 
-    //Ensure that if the page is exited out of it is logged
-    // window.addEventListener("onbeforeunload", function(evt) {
-    //     queryEnd(evt);
-    //     return null;
-    // });
 
 
 });
