@@ -7,11 +7,12 @@ logEntry =
 console.log(logEntry);
 //updates the database with this new log
 //Get the value of whether the script is running
-chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {    
+chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {    
     //Set userID
     logEntry.userID = response.userID;
-    getLatestSessionID("wiki", logEntry.userID, function(id){
-        logEntry.sessionID = id;
+    getLatestSessionInfo("wiki", logEntry.userID, function(sessionInfo){
+        logEntry.sessionID = sessionInfo.id;
+        logEntry.experimentState = sessionInfo.experimentState;
         updateServer("wiki", logEntry);
     });
 

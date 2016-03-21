@@ -142,7 +142,6 @@ var initializeLoggingListeners = function(){
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
     
-
     var queryEnders = [searchBox, voiceSearch, suggestedQuery, originalQuery];
     queryEnders.forEach(function(element, index, array){
         if (element != null){
@@ -239,15 +238,7 @@ observer.observe(ELEMENT_PARENT, {
 });
 
 //Get the value of whether the script is running
-chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {    
-    //Set experiment state
-    experimentState = response.experimentState;
-    userID = response.userID;
-    logEntry.userID = userID;
-    getLatestSessionID("search", userID, function(id) {
-        logEntry.sessionID = id; 
-    });
-
+chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
         initializeLoggingListeners();
@@ -255,22 +246,34 @@ chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {
         document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
     }
 
+
+    logEntry.userID = response.userID;
+
+    getLatestSessionInfo("search", logEntry.userID, function(sessionInfo) {
+        logEntry.sessionID = sessionInfo.id; 
+        experimentState = sessionInfo.experimentState;
+        logEntry.experimentState = experimentState;
+        //stops future modifications from being made if not supposed to modify
+        if(experimentState === "unchanged") {
+            observer.disconnect();
+        }
+
+        restoreModifications(experimentState);
+
+        //after a specified ammount of time, page is displayed to the user.
+        setTimeout(function() {
+            restorePage(observer);
+        }, PAGE_DELAY);
+    });
+
+
+
     //Ensure that if the page is exited out of it is logged
     // window.addEventListener("onbeforeunload", function(evt) {
     //     queryEnd(evt);
     //     return null;
     // });
 
-    //stops future modifications from being made if not supposed to modify
-    if(experimentState === "unchanged") {
-        observer.disconnect();
-    }
 
-    restoreModifications(experimentState);
-
-    //after a specified ammount of time, page is displayed to the user.
-    setTimeout(function() {
-        restorePage(observer);
-    }, PAGE_DELAY);
 });
 

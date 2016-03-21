@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener(function (req, send, sendResponse) {
 		"experimentState": extensionStates[stateCounter],
 		"userID": userID
 	}
-    if (req.cmd === "getExperimentInfo") {
+    if (req.cmd === "getUserInfo") {
     	console.log(response);
         sendResponse(response);
     }
