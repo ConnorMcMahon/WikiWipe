@@ -121,7 +121,7 @@ router.post('/addLog', function(req, resp) {
 router.get('/getLatestSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        getUserLatestSession(db, "search_session", req.query.id, function(data) {
+        getUserLatestSession(db, "search_session", parseInt(req.query.id), function(data) {
             db.close();
             var responseObject = {};
             if(data && data.logs) {
@@ -158,7 +158,7 @@ router.post('/addWikiLog', function(req, resp) {
 router.get('/getLatestWikiSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        getUserLatestSession(db, "wiki_session", req.query.id, function(data) {
+        getUserLatestSession(db, "wiki_session", parseInt(req.query.id), function(data) {
             db.close();
             responseObject = {};
             if(data && data.logs) {
