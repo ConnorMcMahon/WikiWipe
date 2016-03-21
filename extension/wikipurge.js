@@ -190,7 +190,7 @@ var restoreModifications = function(state) {
     
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
-    var answers = document.getElementsByClassName(ANSWER_BOX_CLASS);
+    var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
 
     //restores knowledge boxes
