@@ -1,6 +1,6 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
-const EXPERIMENT_CONDITIONS = ["no_wiki", "no_UCG", "unchanged"];
+const EXPERIMENT_CONDITIONS = ["no_wiki", "no_wiki_total", "no_UGC", "unchanged"];
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {

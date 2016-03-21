@@ -29,7 +29,7 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 var logEntry = {};
 
 //Set to remove all by default
-var experimentState = "no_UCG"
+var experimentState = "no_UGC"
 
 var hide = function(element) {
     element.style.setProperty('display', 'none');
@@ -41,6 +41,7 @@ var removeDOMElements = function() {
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     
     if (knowledgeBoxes) {
         logEntry.knowledgeBoxPresent = true;
@@ -66,7 +67,7 @@ var removeDOMElements = function() {
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 //hides the answer box if it is from WikiData
-                if (!isSourced && experimentState === "no_UCG") {
+                if (!isSourced && experimentState === "no_UGC") {
                     hide(answers[i]);
                     logEntry.removeAnswerBox = true;
                 }
@@ -96,10 +97,24 @@ var removeDOMElements = function() {
 
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
-        if(experimentState === "no_UCG"){
+        if(experimentState === "no_UGC"){
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
         }
+    }
+
+    if (searchResults) {
+        for(var i = 0; i < searchResults.length; i++){
+            //finds the link of the search result
+            var linkName = searchResults[i].childNodes[0].childNodes[0].href
+            //determines if link is from wikipedia using regex
+            var isWikiLink = WIKI_REGEX.test(linkName);
+            //hides the link if it is from wikipedia
+            if (isWikiLink){
+                hide(searchResults[i]);
+                logEntry.numWikiLinksRemoved++;           
+            }
+         }
     }
 
 }
@@ -173,7 +188,7 @@ var restorePage = function(observer) {
 var restoreModifications = function(state) {
     console.log(state);
     //if all UCG content is to be removed, nothing needs to be restored
-    if (state === "no_UCG"){
+    if (state === "no_UGC"){
         return;
     }
     
@@ -181,6 +196,7 @@ var restoreModifications = function(state) {
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
 
     //restores knowledge boxes
     if (state === "unchanged" && knowledgeBoxes) {
@@ -217,6 +233,13 @@ var restoreModifications = function(state) {
     //Restores knowledge chart
     if (knowledgeChart) {
         knowledgeChart.style.setProperty('display', 'block');
+    }
+
+     //restores search results
+    if (state != "no_wiki_total" && searchResults) {
+        for(var i = 0; i < searchResults.length; i++) {
+            searchResults[i].setAttribute('style', 'display:block');
+        }
     }
 }
 
