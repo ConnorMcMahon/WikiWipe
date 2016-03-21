@@ -17,7 +17,8 @@ var updateServer = function(type, logEntry) {
 }
 
 var getNewExperimentCondition = function() {
-    return EXPERIMENT_CONDITIONS[Math.floor(Math.random() * (EXPERIMENT_CONDITIONS.length-1)) + 1];
+    console.log(Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length))
+    return EXPERIMENT_CONDITIONS[Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length)];
 }
 
 var getLatestSessionInfo = function(type, userID, callback) {
@@ -36,15 +37,16 @@ var getLatestSessionInfo = function(type, userID, callback) {
                 var diff = Date.now() - data.lastTimestamp;
                 if (diff > SESSION_TIMEOUT) {
                     sessionInfo.id = parseInt(data.id) + 1
-                    sessionInfo.experimentState = getNewExperimentCondition();
+                    sessionInfo.experimentCondition = getNewExperimentCondition();
                 } else {
                     sessionInfo.id = parseInt(data.id);
-                    sessionInfo.experimentState = data.experimentState;
+                    sessionInfo.experimentCondition = data.experimentCondition;
                 }
             } else {
                 sessionInfo.id = 1;
-                sessionInfo.experimentState = getNewExperimentCondition();
+                sessionInfo.experimentCondition = getNewExperimentCondition();
             }
+            console.log(sessionInfo);
             callback(sessionInfo);
         }
     });

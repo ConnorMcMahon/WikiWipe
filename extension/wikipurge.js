@@ -135,10 +135,14 @@ var observer = new MutationObserver(function(mutations) {
 //A listener function that sends logging information
 var queryEnd = function(evt) {     
     if(experimentInProgress){
-        var searchBox = document.getElementById(SEARCH_BOX_ID);
-        logEntry.queryName = searchBox.value;
+        try {
+            var searchBox = document.getElementById(SEARCH_BOX_ID);
+            logEntry.queryName = searchBox.value;
 
-        updateServer("search", logEntry);
+            updateServer("search", logEntry);
+        } catch(e) {
+            console.log(e);
+        }
     }
 
 }
