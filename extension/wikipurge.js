@@ -26,12 +26,10 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 
 //Global Vars
-
 var logEntry = {};
-var querySent = false;
+
 //Set to remove all by default
-var experimentState = "no_UCG"
-var userID;
+var experimentState = "no_UGC"
 
 var hide = function(element) {
     element.style.setProperty('display', 'none');
@@ -43,6 +41,7 @@ var removeDOMElements = function() {
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     
     if (knowledgeBoxes) {
         logEntry.knowledgeBoxPresent = true;
@@ -68,7 +67,7 @@ var removeDOMElements = function() {
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 //hides the answer box if it is from WikiData
-                if (!isSourced && experimentState === "no_UCG") {
+                if (!isSourced && experimentState === "no_UGC") {
                     hide(answers[i]);
                     logEntry.removeAnswerBox = true;
                 }
@@ -98,10 +97,24 @@ var removeDOMElements = function() {
 
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
-        if(experimentState === "no_UCG"){
+        if(experimentState === "no_UGC"){
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
         }
+    }
+
+    if (searchResults) {
+        for(var i = 0; i < searchResults.length; i++){
+            //finds the link of the search result
+            var linkName = searchResults[i].childNodes[0].childNodes[0].href
+            //determines if link is from wikipedia using regex
+            var isWikiLink = WIKI_REGEX.test(linkName);
+            //hides the link if it is from wikipedia
+            if (isWikiLink){
+                hide(searchResults[i]);
+                logEntry.numWikiLinksRemoved++;           
+            }
+         }
     }
 
 }
@@ -118,20 +131,11 @@ var observer = new MutationObserver(function(mutations) {
 //FUNCTIONS
 
 //A listener function that sends logging information
-var queryEnd = function(evt) {
-    if (!querySent){
-        observer.observe(ELEMENT_PARENT, {
-            childList: true,
-            subtree: true
-        });
-        
-        var searchBox = document.getElementById(SEARCH_BOX_ID);
-        logEntry.queryName = searchBox.value;
-        logEntry.timestamp = Date.now();
+var queryEnd = function(evt) {     
+    var searchBox = document.getElementById(SEARCH_BOX_ID);
+    logEntry.queryName = searchBox.value;
 
-        updateServer("search", logEntry);
-
-    }
+    updateServer("search", logEntry);
 }
 
 //Finds all entities that could indicate a new search query after page loads
@@ -142,7 +146,6 @@ var initializeLoggingListeners = function(){
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
     
-
     var queryEnders = [searchBox, voiceSearch, suggestedQuery, originalQuery];
     queryEnders.forEach(function(element, index, array){
         if (element != null){
@@ -185,14 +188,15 @@ var restorePage = function(observer) {
 var restoreModifications = function(state) {
     console.log(state);
     //if all UCG content is to be removed, nothing needs to be restored
-    if (state === "no_UCG"){
+    if (state === "no_UGC"){
         return;
     }
     
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
-    var answers = document.getElementsByClassName(ANSWER_BOX_CLASS);
+    var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
+    var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
 
     //restores knowledge boxes
     if (state === "unchanged" && knowledgeBoxes) {
@@ -230,6 +234,13 @@ var restoreModifications = function(state) {
     if (knowledgeChart) {
         knowledgeChart.style.setProperty('display', 'block');
     }
+
+     //restores search results
+    if (state != "no_wiki_total" && searchResults) {
+        for(var i = 0; i < searchResults.length; i++) {
+            searchResults[i].setAttribute('style', 'display:block');
+        }
+    }
 }
 
 //creates the mutation observer that hides wiki related DOM objects
@@ -239,14 +250,9 @@ observer.observe(ELEMENT_PARENT, {
 });
 
 //Get the value of whether the script is running
-chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {    
-    //Set experiment state
-    experimentState = response.experimentState;
-    userID = response.userID;
-    logEntry.userID = userID;
-    getLatestSessionID("search", userID, function(id) {
-        logEntry.sessionID = id; 
-    });
+chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
+    //Establish starttime
+    logEntry.startTime = Date.now();
 
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
@@ -255,22 +261,32 @@ chrome.extension.sendMessage({ cmd: "getExperimentInfo" }, function (response) {
         document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
     }
 
-    //Ensure that if the page is exited out of it is logged
-    // window.addEventListener("onbeforeunload", function(evt) {
-    //     queryEnd(evt);
-    //     return null;
-    // });
 
-    //stops future modifications from being made if not supposed to modify
-    if(experimentState === "unchanged") {
-        observer.disconnect();
-    }
+    logEntry.userID = response.userID;
 
-    restoreModifications(experimentState);
+    getLatestSessionInfo("search", logEntry.userID, function(sessionInfo) {
+        logEntry.sessionID = sessionInfo.id; 
+        experimentState = sessionInfo.experimentState;
+        logEntry.experimentState = experimentState;
+        //stops future modifications from being made if not supposed to modify
+        if(experimentState === "unchanged") {
+            observer.disconnect();
+        }
 
-    //after a specified ammount of time, page is displayed to the user.
-    setTimeout(function() {
-        restorePage(observer);
-    }, PAGE_DELAY);
+        restoreModifications(experimentState);
+
+        //Ensure that if the page is exited out of it is logged
+        //uses beforeunload instead of unload to allow click event to occur
+        window.addEventListener("beforeunload", function(evt) {
+            queryEnd(evt);
+        });
+
+
+        //after a specified ammount of time, page is displayed to the user.
+        setTimeout(function() {
+            restorePage(observer);
+        }, PAGE_DELAY);
+    });
+
 });
 
