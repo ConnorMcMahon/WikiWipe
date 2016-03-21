@@ -20,9 +20,9 @@ app.use(bodyParser.json());
 app.use(cors({credentials: true, origin: true}));
 
 app.use(function(req, res, next) {
-      res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-          next();
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
 });
 
 var addLog = function(db, collection, messageInfo, callback) {
@@ -34,7 +34,10 @@ var addLog = function(db, collection, messageInfo, callback) {
             "experimentState": messageInfo.experimentState
         },
         {
-            $push: { logs: messageInfo.log }
+            $push: { logs: messageInfo }
+        },
+        {
+            upsert: true
         }
     );
     callback();
@@ -121,7 +124,7 @@ router.get('/getLatestSessionID', function(req, resp) {
         getUserLatestSession(db, "search_session", req.query.id, function(data) {
             db.close();
             var responseObject = {};
-            if(data.logs) {
+            if(data && data.logs) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
                 responseObject.id = data.sessionID;
@@ -157,7 +160,8 @@ router.get('/getLatestWikiSessionID', function(req, resp) {
         assert.equal(null, err);
         getUserLatestSession(db, "wiki_session", req.query.id, function(data) {
             db.close();
-            if(data.logs) {
+            responseObject = {};
+            if(data && data.logs) {
                 var lastSession = data.logs.slice(-1)[0];
                 responseObject.lastTimestamp = lastSession.timestamp;
                 responseObject.id = data.sessionID;
