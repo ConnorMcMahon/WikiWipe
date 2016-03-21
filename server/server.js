@@ -30,7 +30,7 @@ var addLog = function(db, collection, messageInfo, callback) {
     db.collection(collection).update(
         { 
             "userID": messageInfo.userID,
-            "sessionID": messageInfo.sessionID
+            "sessionID": messageInfo.sessionID,
             "experimentState": messageInfo.experimentState
         },
         {
