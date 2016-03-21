@@ -1,4 +1,5 @@
 var userID;
+var startTime;
 
 //Generate an unused user id
 var generateToken = function(callback) {
@@ -23,13 +24,22 @@ chrome.storage.sync.get('userid', function(items) {
     }
 });
 
+chrome.storage.sync.get('starttime', function(items) {
+	startTime = items.startTime;
+	if (!startTime) {
+		startTime = Date.now();
+		chrome.storage.sync.set({starttime: startTime});
+	}
+});
+
 //Tries to disable answers from appearing in omnibox
 chrome.omnibox.setDefaultSuggestion({description: "Autofill disabled"});
 
 //Adds message listener to return user ID and experiment state
 chrome.runtime.onMessage.addListener(function (req, send, sendResponse) {
 	var response = {
-		"userID": userID
+		"userID": userID,
+		"startTime": startTime
 	}
     if (req.cmd === "getUserInfo") {
     	console.log(response);

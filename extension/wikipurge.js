@@ -1,5 +1,6 @@
 const ELEMENT_PARENT = document.body;
 const PAGE_DELAY = 1000*.3;
+const EXPERIMENT_DURATION = 1000 * 60 * 60 * 24 * 7 * 3; //milliseconds in 3 weeks
 
 //Wikipedia-based classes
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
@@ -29,7 +30,8 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 var logEntry = {};
 
 //Set to remove all by default
-var experimentState = "no_UGC"
+var experimentCondition = "no_UGC"
+var experimentInProgress = true;
 
 var hide = function(element) {
     element.style.setProperty('display', 'none');
@@ -47,7 +49,7 @@ var removeDOMElements = function() {
         logEntry.knowledgeBoxPresent = true;
         for(var i = 0; i < knowledgeBoxes.length; i++){
             //hides the knowledge box
-            if(experimentState !== "unchanged"){
+            if(experimentCondition !== "unchanged"){
                 hide(knowledgeBoxes[i]);
                 logEntry.removeKnowledgeBox = true;
             }
@@ -67,7 +69,7 @@ var removeDOMElements = function() {
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 //hides the answer box if it is from WikiData
-                if (!isSourced && experimentState === "no_UGC") {
+                if (!isSourced && experimentCondition === "no_UGC") {
                     hide(answers[i]);
                     logEntry.removeAnswerBox = true;
                 }
@@ -78,7 +80,7 @@ var removeDOMElements = function() {
                 for(var j = 0; j < questions.length; j++){
                     var answerLink = questions[j].getElementsByClassName(CITE_CLASS)[0].innerHTML;
                     var isWikiLink = WIKI_REGEX.test(answerLink);
-                    if (isWikiLink && experimentState !== "unchanged") {
+                    if (isWikiLink && experimentCondition !== "unchanged") {
                         hide(questions[j]);
                         logEntry.questionsRemoved += 1
                     }
@@ -87,7 +89,7 @@ var removeDOMElements = function() {
                 logEntry.contextAnswerBoxPresent = true;
                 var hyperLink = answers[i].getElementsByClassName("r")[0].childNodes[0];
                 var isWikiLink = WIKI_REGEX.test(hyperLink.getAttribute('href'));
-                if (isWikiLink && experimentState !== "unchanged") {
+                if (isWikiLink && experimentCondition !== "unchanged") {
                     hide(answers[i]);
                     logEntry.removeContextAnswerBox = true;
                 }
@@ -97,7 +99,7 @@ var removeDOMElements = function() {
 
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
-        if(experimentState === "no_UGC"){
+        if(experimentCondition === "no_UGC"){
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
         }
@@ -132,10 +134,13 @@ var observer = new MutationObserver(function(mutations) {
 
 //A listener function that sends logging information
 var queryEnd = function(evt) {     
-    var searchBox = document.getElementById(SEARCH_BOX_ID);
-    logEntry.queryName = searchBox.value;
+    if(experimentInProgress){
+        var searchBox = document.getElementById(SEARCH_BOX_ID);
+        logEntry.queryName = searchBox.value;
 
-    updateServer("search", logEntry);
+        updateServer("search", logEntry);
+    }
+
 }
 
 //Finds all entities that could indicate a new search query after page loads
@@ -251,6 +256,7 @@ observer.observe(ELEMENT_PARENT, {
 
 //Get the value of whether the script is running
 chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
+    console.log(response);
     //Establish starttime
     logEntry.startTime = Date.now();
 
@@ -261,19 +267,28 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         document.addEventListener('DOMContentLoaded', initializeLoggingListeners);
     }
 
-
     logEntry.userID = response.userID;
+    var diff = Date.now() - response.startTime
+    console.log(diff);
+    experimentInProgress = diff <= EXPERIMENT_DURATION;
 
     getLatestSessionInfo("search", logEntry.userID, function(sessionInfo) {
         logEntry.sessionID = sessionInfo.id; 
-        experimentState = sessionInfo.experimentState;
-        logEntry.experimentState = experimentState;
+
+        // experimentInProgress = false;
+        if(!experimentInProgress) {
+            experimentCondition = "unchanged";
+        } else {
+            experimentCondition = sessionInfo.experimentCondition;
+            logEntry.experimentCondition = experimentCondition;
+        }
+
         //stops future modifications from being made if not supposed to modify
-        if(experimentState === "unchanged") {
+        if(experimentCondition === "unchanged") {
             observer.disconnect();
         }
 
-        restoreModifications(experimentState);
+        restoreModifications(experimentCondition);
 
         //Ensure that if the page is exited out of it is logged
         //uses beforeunload instead of unload to allow click event to occur
