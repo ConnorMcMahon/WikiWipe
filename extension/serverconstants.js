@@ -10,6 +10,8 @@ var updateServer = function(type, logEntry) {
 	} else if (type === "wiki") {
 		queryString = "/addWikiLog";
 	}
+    logEntry.timestamp = Date.now();
+
     var blob = new Blob([JSON.stringify(logEntry)], {type : 'application/json; charset=UTF-8'});
     navigator.sendBeacon(SERVER+queryString, blob);
 }

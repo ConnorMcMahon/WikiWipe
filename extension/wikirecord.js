@@ -1,6 +1,6 @@
 logEntry = 
     { "url": document.URL, 
-      "timestamp": Date.now()
+      "startTime": Date.now()
     };
 
 
@@ -12,8 +12,15 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     logEntry.userID = response.userID;
     getLatestSessionInfo("wiki", logEntry.userID, function(sessionInfo){
         logEntry.sessionID = sessionInfo.id;
+        //irrelevant for actual data collection, but used in generic server functions
         logEntry.experimentState = sessionInfo.experimentState;
-        updateServer("wiki", logEntry);
+
+        //Ensure that if the page is exited out of it is logged
+        //uses beforeunload instead of unload to allow click event to occur
+        window.addEventListener("beforeunload", function(evt) {
+            updateServer("wiki", logEntry);
+        });
+        
     });
 
 });

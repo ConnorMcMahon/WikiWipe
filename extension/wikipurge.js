@@ -119,7 +119,6 @@ var observer = new MutationObserver(function(mutations) {
 var queryEnd = function(evt) {     
     var searchBox = document.getElementById(SEARCH_BOX_ID);
     logEntry.queryName = searchBox.value;
-    logEntry.timestamp = Date.now();
 
     updateServer("search", logEntry);
 }
@@ -229,6 +228,9 @@ observer.observe(ELEMENT_PARENT, {
 
 //Get the value of whether the script is running
 chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
+    //Establish starttime
+    logEntry.startTime = Date.now();
+
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
         initializeLoggingListeners();
