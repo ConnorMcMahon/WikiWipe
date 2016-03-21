@@ -26,12 +26,10 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 
 //Global Vars
-
 var logEntry = {};
-var linkClicked = false;
+
 //Set to remove all by default
 var experimentState = "no_UCG"
-var userID;
 
 var hide = function(element) {
     element.style.setProperty('display', 'none');
@@ -151,7 +149,6 @@ var initializeLoggingListeners = function(){
 
     searchLinks.forEach(function(element, index, array){
         element.addEventListener("click", function(evt){
-            linkClicked = true;
             //todo log which link was picked
             logEntry.linkRank = index + 1;
             logEntry.linkURL = element.childNodes[0].getAttribute("data-href");
@@ -259,21 +256,12 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
             queryEnd(evt);
         });
 
-        
-        // window.addEventListener("unload", function(evt) {
-        //     queryEnd(evt);
-        //     return null;
-        // });
 
         //after a specified ammount of time, page is displayed to the user.
         setTimeout(function() {
             restorePage(observer);
         }, PAGE_DELAY);
     });
-
-
-
-
 
 });
 
