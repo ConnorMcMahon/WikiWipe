@@ -3,7 +3,7 @@
 
   "name": "WikiWipe",
   "description": "This extension attempts to remove wikipedia information",
-  "version": "0.5",
+  "version": "0.8",
   "background": {
     "scripts": ["jquery.js", "serverconstants.js", "background.js"]
   },

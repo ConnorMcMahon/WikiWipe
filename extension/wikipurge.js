@@ -24,8 +24,6 @@ const CITE_CLASS = '_Rm'
 
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
-
-
 //Global Vars
 var logEntry = {};
 
