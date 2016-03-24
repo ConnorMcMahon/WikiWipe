@@ -134,7 +134,6 @@ router.get('/getLatestSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
         getUserLatestSession(db, "search_session", parseInt(req.query.id), function(data) {
-            console.dir(data);
             db.close();
             var responseObject = {};
             if (data) {
