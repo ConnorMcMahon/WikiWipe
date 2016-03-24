@@ -16,9 +16,24 @@ var updateServer = function(type, logEntry) {
     navigator.sendBeacon(SERVER+queryString, blob);
 }
 
-var getNewExperimentCondition = function() {
-    console.log(Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length))
-    return EXPERIMENT_CONDITIONS[Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length)];
+var getNewExperimentCondition = function(type, userID, sessionID) {
+    var condition = EXPERIMENT_CONDITIONS[Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length)];
+    var queryString;
+    if(type === "search") {
+        queryString = "/addSession";
+    } else if (type === "wiki") {
+        queryString = "/addWikiSession";
+    }
+    jQuery.ajax({
+        type: "POST",
+        url : SERVER + queryString,
+        data: {
+                "experimentCondition": condition,
+                "sessionID": sessionID,
+                "userID": userID
+            }
+    });
+    return condition;
 }
 
 var getLatestSessionInfo = function(type, userID, callback) {
@@ -32,19 +47,26 @@ var getLatestSessionInfo = function(type, userID, callback) {
         type:  "GET",
         url:  SERVER + queryString + "?id=" + userID,
         success: function(data) {
+            console.log(data);
             var sessionInfo = {}
-            if(data.id && data.lastTimestamp) {
-                var diff = Date.now() - data.lastTimestamp;
-                if (diff > SESSION_TIMEOUT) {
-                    sessionInfo.id = parseInt(data.id) + 1
-                    sessionInfo.experimentCondition = getNewExperimentCondition();
+            if(data.id) {
+                if(data.lastTimestamp) {
+                    var diff = Date.now() - data.lastTimestamp;
+                    if (diff > SESSION_TIMEOUT) {
+                        sessionInfo.id = parseInt(data.id) + 1
+                        sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
+                    } else {
+                        sessionInfo.id = parseInt(data.id);
+                        sessionInfo.experimentCondition = data.experimentState;
+                    }
                 } else {
-                    sessionInfo.id = parseInt(data.id);
-                    sessionInfo.experimentCondition = data.experimentState;
+                        sessionInfo.id = parseInt(data.id);
+                        sessionInfo.experimentCondition = data.experimentState;
                 }
+
             } else {
                 sessionInfo.id = 1;
-                sessionInfo.experimentCondition = getNewExperimentCondition();
+                sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
             }
             console.log(sessionInfo);
             callback(sessionInfo);
