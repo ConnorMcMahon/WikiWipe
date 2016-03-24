@@ -32,6 +32,8 @@ var removedLinks = []
 var experimentCondition = "no_UGC"
 var experimentInProgress = true;
 
+var alreadyLogged =false;
+
 var sizes = {}
 
 var hide = function(element) {
@@ -161,12 +163,14 @@ var observer = new MutationObserver(function(mutations) {
 
 //A listener function that sends logging information
 var queryEnd = function(evt) {     
-    if(experimentInProgress){
+    if(experimentInProgress && !alreadyLogged){
+        alreadyLogged = true;
         try {
             var searchBox = document.getElementById(SEARCH_BOX_ID);
             logEntry.queryName = searchBox.value;
 
             updateServer("search", logEntry);
+
         } catch(e) {
             console.log(e);
         }
