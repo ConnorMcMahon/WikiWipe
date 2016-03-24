@@ -43,6 +43,18 @@ var addLog = function(db, collection, messageInfo, callback) {
     callback();
 }
 
+var addSession = function(db, collection, messageInfo, callback) {
+    console.dir(messageInfo);
+    db.collection(collection).update(
+        { 
+            "userID": messageInfo.userID,
+            "sessionID": messageInfo.sessionID,
+            "experimentState": messageInfo.experimentCondition
+        }
+    );
+    callback();
+}
+
 var getSessions = function(db, collection, callback) {
     db.collection(collection).find().toArray(function(err, docs){
         if (err) {
@@ -145,6 +157,26 @@ router.get('/getSessions', function(req, resp) {
     });
 });
 
+router.post('/addSession', function(req, resp) {
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        addSession(db, "search_session", req.body, function() {
+            db.close();
+            resp.send("Added");
+        });
+    });
+});
+
+router.post('/addWikiSession', function(req, resp) {
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        addSession(db, "wiki_session", req.body, function() {
+            db.close();
+            resp.send("Added");
+        });
+    });
+});
+
 router.post('/addWikiLog', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
@@ -154,6 +186,8 @@ router.post('/addWikiLog', function(req, resp) {
         });
     });
 });
+
+
 
 router.get('/getLatestWikiSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
