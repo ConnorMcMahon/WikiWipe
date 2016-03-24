@@ -45,10 +45,10 @@ var addLog = function(db, collection, messageInfo, callback) {
 
 var addSession = function(db, collection, messageInfo, callback) {
     console.dir(messageInfo);
-    db.collection(collection).update(
+    db.collection(collection).insert(
         { 
-            "userID": messageInfo.userID,
-            "sessionID": messageInfo.sessionID,
+            "userID": parseInt(messageInfo.userID),
+            "sessionID": parseInt(messageInfo.sessionID),
             "experimentState": messageInfo.experimentCondition
         }
     );
@@ -134,13 +134,16 @@ router.get('/getLatestSessionID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
         assert.equal(null, err);
         getUserLatestSession(db, "search_session", parseInt(req.query.id), function(data) {
+            console.dir(data);
             db.close();
             var responseObject = {};
-            if(data && data.logs) {
-                var lastSession = data.logs.slice(-1)[0];
-                responseObject.lastTimestamp = lastSession.timestamp;
+            if (data) {
                 responseObject.id = data.sessionID;
                 responseObject.experimentState = data.experimentState;
+                if (data.logs) {
+                    var lastSession = data.logs.slice(-1)[0];
+                    responseObject.lastTimestamp = lastSession.timestamp;
+                }
             }
             resp.send(responseObject);
         });
@@ -195,12 +198,15 @@ router.get('/getLatestWikiSessionID', function(req, resp) {
         getUserLatestSession(db, "wiki_session", parseInt(req.query.id), function(data) {
             db.close();
             responseObject = {};
-            if(data && data.logs) {
-                var lastSession = data.logs.slice(-1)[0];
-                responseObject.lastTimestamp = lastSession.timestamp;
+            if (data) {
                 responseObject.id = data.sessionID;
                 responseObject.experimentState = data.experimentState;
+                if (data.logs) {
+                    var lastSession = data.logs.slice(-1)[0];
+                    responseObject.lastTimestamp = lastSession.timestamp;
+                }
             }
+
             resp.send(responseObject);
         });
     });
