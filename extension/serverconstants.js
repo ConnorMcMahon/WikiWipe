@@ -40,7 +40,7 @@ var getLatestSessionInfo = function(type, userID, callback) {
                     sessionInfo.experimentCondition = getNewExperimentCondition();
                 } else {
                     sessionInfo.id = parseInt(data.id);
-                    sessionInfo.experimentCondition = data.experimentCondition;
+                    sessionInfo.experimentCondition = data.experimentState;
                 }
             } else {
                 sessionInfo.id = 1;
