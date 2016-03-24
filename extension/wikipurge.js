@@ -32,6 +32,8 @@ var removedLinks = []
 var experimentCondition = "no_UGC"
 var experimentInProgress = true;
 
+var sizes = {}
+
 var hide = function(element) {
     element.style.setProperty('display', 'none');
 }
@@ -41,10 +43,16 @@ var restore = function(element) {
 }
 
 var getElementSize = function(element) {
-    var currentStyle = element.style.display;
-    var size = element.offsetHeight * element.offsetWidth;
-    element.style.setProperty('display', currentStyle);
-    return size;
+    var id = element.getAttribute("data-hveid");
+    if (!sizes[id]) {
+        var currentStyle = element.style.display;
+        element.style.setProperty('display', 'block');
+        console.log(element);
+        console.log(element.offsetHeight);
+        sizes[id] = element.offsetHeight * element.offsetWidth;
+        element.style.setProperty('display', currentStyle); 
+    }
+    return sizes[id]
 }
 
 //Removes WikiRelated DOM elements
@@ -294,7 +302,6 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     logEntry.userID = response.userID;
     logEntry.windowPixels = $(window).height() * $(window).width()
     var diff = Date.now() - response.startTime
-    console.log(diff);
     experimentInProgress = diff <= EXPERIMENT_DURATION;
     logEntry.numWikiLinksRemoved = 0;
 
@@ -322,9 +329,11 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
             queryEnd(evt);
         });
 
+        
         //after a specified ammount of time, page is displayed to the user.
         setTimeout(function() {
             restorePage(observer);
+            console.log(logEntry);
         }, PAGE_DELAY);
     });
 
