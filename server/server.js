@@ -31,7 +31,7 @@ var addLog = function(db, collection, messageInfo, callback) {
         { 
             "userID": messageInfo.userID,
             "sessionID": messageInfo.sessionID,
-            "experimentState": messageInfo.experimentState
+            "experimentState": messageInfo.experimentCondition
         },
         {
             $push: { logs: messageInfo }
