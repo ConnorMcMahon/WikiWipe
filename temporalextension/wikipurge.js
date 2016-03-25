@@ -27,13 +27,34 @@ const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 //Global Vars
 var logEntry = {};
+var removedLinks = [];
 
 //Set to remove all by default
 var experimentCondition = "no_UGC"
 var experimentInProgress = true;
 
+var alreadyLogged = false;
+var sizes = {};
+
 var hide = function(element) {
     element.style.setProperty('display', 'none');
+}
+
+var restore = function(element) {       
+    element.style.setProperty('display', 'block');      
+}
+
+var getElementSize = function(element) {        
+    var id = element.getAttribute("data-hveid");        
+    if (!sizes[id]) {       
+        var currentStyle = element.style.display;       
+        element.style.setProperty('display', 'block');      
+        console.log(element);       
+        console.log(element.offsetHeight);      
+        sizes[id] = element.offsetHeight * element.offsetWidth;     
+        element.style.setProperty('display', currentStyle);         
+    }       
+    return sizes[id]        
 }
 
 //Removes WikiRelated DOM elements
@@ -47,6 +68,7 @@ var removeDOMElements = function() {
     if (knowledgeBoxes) {
         logEntry.knowledgeBoxPresent = true;
         for(var i = 0; i < knowledgeBoxes.length; i++){
+            logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
             //hides the knowledge box
             if(experimentCondition !== "unchanged"){
                 hide(knowledgeBoxes[i]);
@@ -64,6 +86,7 @@ var removeDOMElements = function() {
             
             if (isAnswerBox) {
                 logEntry.answerBoxPresent = true;
+                logEntry.answerBoxSize = getElementSize(answers[i]);
                 //Find the source in the html
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
@@ -74,6 +97,7 @@ var removeDOMElements = function() {
                 }
             } else if (isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
+                logEntry.questionsSize = getElementSize(answers[i]);
                 logEntry.questionsFound = questions.length;
                 logEntry.questionsRemoved = 0;
                 for(var j = 0; j < questions.length; j++){
@@ -86,6 +110,7 @@ var removeDOMElements = function() {
                 }
             } else if (isContextAnswer) {
                 logEntry.contextAnswerBoxPresent = true;
+                logEntry.contextAnswerBoxSize = getElementSize(answers[i]);
                 var hyperLink = answers[i].getElementsByClassName("r")[0].childNodes[0];
                 var isWikiLink = WIKI_REGEX.test(hyperLink.getAttribute('href'));
                 if (isWikiLink && experimentCondition !== "unchanged") {
@@ -98,6 +123,7 @@ var removeDOMElements = function() {
 
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
+        logEntry.knowledgeChartSize = getElementSize(knowledgeChart);
         if(experimentCondition === "no_UGC"){
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
@@ -110,10 +136,12 @@ var removeDOMElements = function() {
             var linkName = searchResults[i].childNodes[0].childNodes[0].href
             //determines if link is from wikipedia using regex
             var isWikiLink = WIKI_REGEX.test(linkName);
+            var id = searchResults[i].getAttribute("data-hveid");
             //hides the link if it is from wikipedia
-            if (isWikiLink){
+            if (isWikiLink && removedLinks.indexOf(id) === -1){
                 hide(searchResults[i]);
-                logEntry.numWikiLinksRemoved++;           
+                removedLinks.push(id);
+                logEntry.numWikiLinksRemoved += 1;          
             }
          }
     }
@@ -133,7 +161,8 @@ var observer = new MutationObserver(function(mutations) {
 
 //A listener function that sends logging information
 var queryEnd = function(evt) {     
-    if(experimentInProgress){
+    if(experimentInProgress && !alreadyLogged){
+        alreadyLogged = true;
         try {
             var searchBox = document.getElementById(SEARCH_BOX_ID);
             logEntry.queryName = searchBox.value;
@@ -209,7 +238,7 @@ var restoreModifications = function(state) {
     //restores knowledge boxes
     if (state === "unchanged" && knowledgeBoxes) {
         for(var i = 0; i < knowledgeBoxes.length; i++) {
-            knowledgeBoxes[i].style.setProperty('display', 'block');
+            restore(knowledgeBoxes[i]);
         }
         logEntry.removeKnowledgeBox = false;
     }
@@ -224,30 +253,31 @@ var restoreModifications = function(state) {
 
             if (isAnswerBox){
                 logEntry.removeAnswerBox = false;
-                answers[i].style.setProperty('display', 'block');
+                restore(answers[i]);
             } else if (state === "unchanged" && isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
                 for(var j = 0; j < questions.length; j++){
-                    questions[j].style.setProperty('display', 'block');
+                    restore(questions[j]);
                 }
                 logEntry.questionsRemoved = 0;
             } else if (state === "unchanged" && isContextAnswer){
                 logEntry.contextAnswerBoxPresent = false;
-                answers[i].style.setProperty('display', 'block');
+                restore(answers[i]);
             }
         }
     }
 
     //Restores knowledge chart
     if (knowledgeChart) {
-        knowledgeChart.style.setProperty('display', 'block');
+        restore(knowledgeChart);
     }
 
      //restores search results
-    if (state != "no_wiki_total" && searchResults) {
+    if (state !== "no_wiki_total" && searchResults) {
         for(var i = 0; i < searchResults.length; i++) {
-            searchResults[i].setAttribute('style', 'display:block');
+            restore(searchResults[i]);
         }
+        logEntry.numWikiLinksRemoved = 0;
     }
 }
 
@@ -271,8 +301,10 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     }
 
     logEntry.userID = response.userID;
+    logEntry.windowPixels = $(window).height() * $(window).width();
+    logEntry.numWikiLinksRemoved = 0;
+
     var diff = Date.now() - response.startTime
-    console.log(diff);
     experimentInProgress = diff <= EXPERIMENT_DURATION;
     var newCondition = diff > CONTROL_DURATION;
 
