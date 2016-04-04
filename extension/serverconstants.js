@@ -1,6 +1,6 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
-const EXPERIMENT_CONDITIONS = ["no_wiki", "no_wiki_total", "no_UGC", "unchanged"];
+const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {
@@ -37,40 +37,41 @@ var getNewExperimentCondition = function(type, userID, sessionID) {
 }
 
 var getLatestSessionInfo = function(type, userID, callback) {
-    var queryString;
-    if(type === "search") {
-        queryString = "/getLatestSessionID";
-    } else if (type === "wiki") {
-        queryString = "/getLatestWikiSessionID";
-    }
-    jQuery.ajax({
-        type:  "GET",
-        url:  SERVER + queryString + "?id=" + userID,
-        success: function(data) {
-            console.log(data);
-            var sessionInfo = {}
-            if(data.id) {
-                if(data.lastTimestamp) {
-                    var diff = Date.now() - data.lastTimestamp;
-                    if (diff > SESSION_TIMEOUT) {
-                        sessionInfo.id = parseInt(data.id) + 1
-                        sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
-                    } else {
-                        sessionInfo.id = parseInt(data.id);
-                        sessionInfo.experimentCondition = data.experimentState;
-                    }
-                } else {
-                        sessionInfo.id = parseInt(data.id);
-                        sessionInfo.experimentCondition = data.experimentState;
-                }
+    // var queryString;
+    // if(type === "search") {
+    //     queryString = "/getLatestSessionID";
+    // } else if (type === "wiki") {
+    //     queryString = "/getLatestWikiSessionID";
+    // }
+    // jQuery.ajax({
+    //     type:  "GET",
+    //     url:  SERVER + queryString + "?id=" + userID,
+    //     success: function(data) {
+    //         console.log(data);
+    //         var sessionInfo = {}
+    //         if(data.id) {
+    //             if(data.lastTimestamp) {
+    //                 var diff = Date.now() - data.lastTimestamp;
+    //                 if (diff > SESSION_TIMEOUT) {
+    //                     sessionInfo.id = parseInt(data.id) + 1
+    //                     sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
+    //                 } else {
+    //                     sessionInfo.id = parseInt(data.id);
+    //                     sessionInfo.experimentCondition = data.experimentState;
+    //                 }
+    //             } else {
+    //                     sessionInfo.id = parseInt(data.id);
+    //                     sessionInfo.experimentCondition = data.experimentState;
+    //             }
 
-            } else {
-                sessionInfo.id = 1;
-                sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
-            }
-            console.log(sessionInfo);
-            callback(sessionInfo);
-        }
-    });
+    //         } else {
+    //             sessionInfo.id = 1;
+    //             sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
+    //         }
+    //         console.log(sessionInfo);
+    //         callback(sessionInfo);
+    //     }
+    // });
+    callback({id: 1, experimentCondition="all"});
 }
 
