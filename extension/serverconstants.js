@@ -72,6 +72,6 @@ var getLatestSessionInfo = function(type, userID, callback) {
     //         callback(sessionInfo);
     //     }
     // });
-    callback({id: 1, experimentCondition="all"});
+    callback({id: 1, experimentCondition:"all"});
 }
 
