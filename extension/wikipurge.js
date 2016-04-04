@@ -1,17 +1,22 @@
 const ELEMENT_PARENT = document.body;
 const PAGE_DELAY = 1000*.3;
 const EXPERIMENT_DURATION = 1000 * 60 * 60 * 24 * 7 * 3; //milliseconds in 3 weeks
+const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
 
-//Wikipedia-based classes
+
+//Asset based constants
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
 const QA_BOX_CLASS = 'kp-blk _Jw _thf _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
-
-//Knowledge Graph (potential WikiData) classes
 const ANSWERS_CLASS = 'g mnr-c g-blk';
-const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe"
-const KNOWLEDGE_TABLE_ID = "kx"
-const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe'
+const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe";
+const KNOWLEDGE_TABLE_ID = "kx";
+const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe';
+const TWITTER_TAG = "g-snapping-carousel";
+
+
+//Link based constants
+const WIKI_REGEX = /.*\.wikipedia\.org.*/;
 
 
 //General Google DOM ids
@@ -22,14 +27,14 @@ const VOICE_SEARCH_ID = 'gs_st0';
 const GOOGLE_BODY = 'rcnt';
 const CITE_CLASS = '_Rm'
 
-const WIKI_REGEX = /.*\.wikipedia\.org.*/;
+
 
 //Global Vars
 var logEntry = {};
 var removedLinks = []
 
 //Set to remove all by default
-var experimentCondition = "no_UGC"
+var experimentCondition = "all"
 var experimentInProgress = true;
 
 var alreadyLogged =false;
@@ -44,13 +49,15 @@ var restore = function(element) {
     element.style.setProperty('display', 'block');
 }
 
+var include = function(arr,obj) {
+    return (arr.indexOf(obj) != -1);
+}
+
 var getElementSize = function(element) {
     var id = element.getAttribute("data-hveid");
     if (!sizes[id]) {
         var currentStyle = element.style.display;
         element.style.setProperty('display', 'block');
-        console.log(element);
-        console.log(element.offsetHeight);
         sizes[id] = element.offsetHeight * element.offsetWidth;
         element.style.setProperty('display', currentStyle); 
     }
@@ -64,16 +71,16 @@ var removeDOMElements = function() {
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+    var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
     
     if (knowledgeBoxes) {
         logEntry.knowledgeBoxPresent = true;
         for(var i = 0; i < knowledgeBoxes.length; i++){
             logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
-            //hides the knowledge box
-            if(experimentCondition !== "unchanged"){
-                hide(knowledgeBoxes[i]);
-                logEntry.removeKnowledgeBox = true;
-            }
+            //hides the knowledge box  
+            hide(knowledgeBoxes[i]);
+            logEntry.removeKnowledgeBox = true;
+            
         }       
     }
 
@@ -91,7 +98,7 @@ var removeDOMElements = function() {
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 //hides the answer box if it is from WikiData
-                if (!isSourced && experimentCondition === "no_UGC") {
+                if (!isSourced && include(EXPERIMENT_CONDITIONS.splice(3),experimentCondition)) {
                     hide(answers[i]);
                     logEntry.removeAnswerBox = true;
                 }
@@ -124,7 +131,7 @@ var removeDOMElements = function() {
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
         logEntry.knowledgeChartSize = getElementSize(knowledgeChart);
-        if(experimentCondition === "no_UGC"){
+        if(include(EXPERIMENTCONDITIONS.splice(3), experimentCondition)) {
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
         }
@@ -146,6 +153,15 @@ var removeDOMElements = function() {
                 logEntry.numWikiLinksRemoved += 1;           
             }
          }
+    }
+
+    if(twitterBox) {
+        logEntry.twitterPresent = true;
+        logEntry.twitterSize = getElementSize(twitterBox);
+        if(experimentCondition === "all"){
+            logEntry.twitterRemoved = true;
+            hide(twitterBox);
+        }
     }
 
 }
@@ -228,7 +244,7 @@ var restorePage = function(observer) {
 var restoreModifications = function(state) {
     console.log(state);
     //if all UCG content is to be removed, nothing needs to be restored
-    if (state === "no_UGC"){
+    if (state === "all"){
         return;
     }
     
@@ -237,6 +253,7 @@ var restoreModifications = function(state) {
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
+    var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
 
     //restores knowledge boxes
     if (state === "unchanged" && knowledgeBoxes) {
@@ -281,6 +298,11 @@ var restoreModifications = function(state) {
             restore(searchResults[i]);
         }
         logEntry.numWikiLinksRemoved = 0;
+    }
+
+    if(twitterBox) {
+        logEntry.twitterRemoved = false;
+        restore(twitterBox);
     }
 }
 

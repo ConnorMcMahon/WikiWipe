@@ -1,6 +1,5 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
-const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {
@@ -72,6 +71,6 @@ var getLatestSessionInfo = function(type, userID, callback) {
     //         callback(sessionInfo);
     //     }
     // });
-    callback({id: 1, experimentCondition:"all"});
+    callback({id: 1, experimentCondition:"unchanged"});
 }
 
