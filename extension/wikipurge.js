@@ -14,6 +14,16 @@ const KNOWLEDGE_TABLE_ID = "kx";
 const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe';
 const TWITTER_TAG = "g-snapping-carousel";
 
+//Knowledge assets
+const KNOWLEDGE_DESC_CLASS = "kno-rdesc";
+const KNOWLEDGE_TEXT_CLASS = "_RBg"
+const NON_WIKI_FACTS = ["Stock price", "Weather", "Hotels", "Getting there", "Local time"];
+const KNOWLEDGE_FACTS = "kno-fb-ctx";
+const HEADING_CLASS = "_W5e _X5e"
+const CATEGORY_CLASS = "_tN"
+const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Albums", "Songs", "TV Shows", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
+const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Roster", "Current Models", "Destination"];
+
 
 //Link based constants
 const WIKI_REGEX = /.*\.wikipedia\.org.*/;
@@ -26,7 +36,6 @@ const ORIG_SPELLING_CLASS = 'spell_orig';
 const VOICE_SEARCH_ID = 'gs_st0';
 const GOOGLE_BODY = 'rcnt';
 const CITE_CLASS = '_Rm'
-
 
 
 //Global Vars
@@ -46,11 +55,11 @@ var hide = function(element) {
 }
 
 var restore = function(element) {
-    element.style.setProperty('display', 'block');
+    element.style.setProperty('display', 'block', "!important");
 }
 
 var include = function(arr,obj) {
-    return (arr.indexOf(obj) != -1);
+    return (arr.indexOf(obj) !== -1);
 }
 
 var getElementSize = function(element) {
@@ -64,8 +73,57 @@ var getElementSize = function(element) {
     return sizes[id]
 }
 
+var hideKnowledgeBox = function(knowledgeBox){ 
+    //TODO: log hide knowledge boxes
+    var lowerBound = include(EXPERIMENT_CONDITIONS.splice(1), experimentCondition);
+    var middleBound = include(EXPERIMENT_CONDITIONS.splice(3), experimentCondition);
+    var upperBound = include(EXPERIMENT_CONDITIONS.splice(5), experimentCondition);
+
+    var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
+
+    var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
+    var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
+    var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
+
+    if(lowerBound && description && description.childNodes.length > 1) {
+        hide(description);
+    }
+
+    if(middleBound && facts){
+        for(var i =0; i < facts.length; i++){
+            var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
+            if(!include(NON_WIKI_FACTS, factLabel)){
+                hide(facts[i]);
+            }
+        } 
+    }
+
+    if(categories){
+        for(var i = 0 ; i < categories.length; i++){
+            var headings = categories[i].getElementsByClassName(HEADING_CLASS);
+            if(headings[0]){
+                var heading = headings[0].childNodes[0].innerHTML;
+                if(middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)){
+                    hide(categories[i]);
+                } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    hide(categories[i]);
+                }
+            }
+        }
+    }
+
+    if(experimentCondition === "all"){
+        hide(knowledgeBox);
+    }
+}
+
+
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
+    if(experimentCondition === "unchanged"){
+
+    }
+
     //locates any potential dom elements to remove
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
@@ -78,7 +136,7 @@ var removeDOMElements = function() {
         for(var i = 0; i < knowledgeBoxes.length; i++){
             logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
             //hides the knowledge box  
-            hide(knowledgeBoxes[i]);
+            hideKnowledgeBox(knowledgeBoxes[i]);
             logEntry.removeKnowledgeBox = true;
             
         }       
@@ -137,7 +195,7 @@ var removeDOMElements = function() {
         }
     }
 
-    if (searchResults) {
+    if (searchResults && include(["lowerbound+links", "middlebound+links", "upperbound+links", "all"], experimentCondition)) {
         for(var i = 0; i < searchResults.length; i++){
             //finds the link of the search result
             var linkName = searchResults[i].childNodes[0].childNodes[0].href
@@ -233,12 +291,56 @@ var restorePage = function(observer) {
     var interval = setInterval(function(){
         body = document.getElementById(GOOGLE_BODY);
         if (body){
+            // observer.disconnect();
             body.style.setProperty('display', 'block');
             //line below causes race condition
             //observer.disconnect();
             clearInterval(interval);
         }
     }, 100);  
+}
+
+var restoreKnowledgeBox = function(knowledgeBox){
+    var lowerBound = include(EXPERIMENT_CONDITIONS.splice(0,1), experimentCondition);
+    var middleBound = include(EXPERIMENT_CONDITIONS.splice(0,3), experimentCondition);
+    var upperBound = include(EXPERIMENT_CONDITIONS.splice(0,5), experimentCondition);
+
+    console.log("restoring");
+    var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
+
+    var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
+    var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
+    var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
+
+    if(lowerBound && description && description.childNodes.length > 1) {
+        restore(description);
+    }
+
+    if(middleBound && facts){
+        for(var i =0; i < facts.length; i++){
+            var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
+            if(!include(NON_WIKI_FACTS, factLabel)){
+                console.log(factLabel);
+                restore(facts[i]);
+            }
+        } 
+    }
+
+    if(categories){
+        for (var i = 0 ; i < categories.length; i++) {
+            var headings = categories[i].getElementsByClassName(HEADING_CLASS);
+            if (headings[0]) {
+                var heading = headings[0].childNodes[0].innerHTML;
+                if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
+                    restore(categories[i]);
+                } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    restore(categories[i]);
+                }
+            }
+        }
+    }
+
+    restore(knowledgeBox);
 }
 
 var restoreModifications = function(state) {
@@ -256,9 +358,9 @@ var restoreModifications = function(state) {
     var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
 
     //restores knowledge boxes
-    if (state === "unchanged" && knowledgeBoxes) {
+    if (knowledgeBoxes) {
         for(var i = 0; i < knowledgeBoxes.length; i++) {
-            restore(knowledgeBoxes[i]);
+            restoreKnowledgeBox(knowledgeBoxes[i]);
         }
         logEntry.removeKnowledgeBox = false;
     }
@@ -293,7 +395,8 @@ var restoreModifications = function(state) {
     }
 
      //restores search results
-    if (state !== "no_wiki_total" && searchResults) {
+    if (include(["unchanged", "lowerbound", "middlebound", "upperbound"], experimentCondition) && searchResults) {
+        console.log("restoring search results");
         for(var i = 0; i < searchResults.length; i++) {
             restore(searchResults[i]);
         }
@@ -304,6 +407,7 @@ var restoreModifications = function(state) {
         logEntry.twitterRemoved = false;
         restore(twitterBox);
     }
+    
 }
 
 //creates the mutation observer that hides wiki related DOM objects
@@ -343,7 +447,7 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         }
 
         //stops future modifications from being made if not supposed to modify
-        if(experimentCondition === "unchanged") {
+        if(experimentCondition !== "all") {
             observer.disconnect();
         }
 
