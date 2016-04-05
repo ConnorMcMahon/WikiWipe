@@ -13,6 +13,8 @@ const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe";
 const KNOWLEDGE_TABLE_ID = "kx";
 const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe';
 const TWITTER_TAG = "g-snapping-carousel";
+const SCORES_CLASS = "obcontainer";
+const LOCATION_CLASS = "_Xhb";
 
 //Knowledge assets
 const SEE_RESULTS_CLASS = "_eXg";
@@ -143,6 +145,8 @@ var removeDOMElements = function() {
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
+    var scoresBox = document.getElementsByClassName(SCORES_CLASS)[0];
+    var locationBox = document.getElementsByClassName(LOCATION_CLASS)[0];
     
     if (knowledgeBoxes) {
         
@@ -240,6 +244,24 @@ var removeDOMElements = function() {
         if(experimentCondition === "all"){
             logEntry.twitterRemoved = true;
             hide(twitterBox);
+        }
+    }
+
+    if(scoresBox) {
+        logEntry.scorePresent = true;
+        logEntry.scoreSize = getElementSize(scoresBox);
+        if(experimentCondition === "all"){
+            logEntry.scoreRemoved = true;
+            hide(scoresBox);
+        }
+    }
+
+    if(locationBox) {
+        logEntry.locationPresent = true;
+        logEntry.locationSize = getElementSize(locationBox);
+        if(experimentCondition === "all"){
+            logEntry.locationRemoved = true;
+            hide(locationBox);
         }
     }
 
@@ -382,6 +404,8 @@ var restoreModifications = function(state) {
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
     var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
+    var scoresBox = document.getElementsByClassName(SCORES_CLASS)[0];
+    var locationBox = document.getElementsByClassName(LOCATION_CLASS)[0];
 
     //restores knowledge boxes
     if (knowledgeBoxes) {
@@ -437,6 +461,16 @@ var restoreModifications = function(state) {
     if(twitterBox) {
         logEntry.twitterRemoved = false;
         restore(twitterBox);
+    }
+
+    if(scoresBox) { 
+        logEntry.scoreRemoved = false;
+        restore(scoresBox);
+    }
+
+    if(locationBox) {
+        logEntry.locationRemoved = true;
+        restore(locationBox);
     }
     
 }
