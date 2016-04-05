@@ -55,7 +55,7 @@ var hide = function(element) {
 }
 
 var restore = function(element) {
-    element.style.setProperty('display', 'block', "!important");
+    element.style.setProperty('display', 'block');
 }
 
 var include = function(arr,obj) {
@@ -75,9 +75,9 @@ var getElementSize = function(element) {
 
 var hideKnowledgeBox = function(knowledgeBox){ 
     //TODO: log hide knowledge boxes
-    var lowerBound = include(EXPERIMENT_CONDITIONS.splice(1), experimentCondition);
-    var middleBound = include(EXPERIMENT_CONDITIONS.splice(3), experimentCondition);
-    var upperBound = include(EXPERIMENT_CONDITIONS.splice(5), experimentCondition);
+    var lowerBound = include(EXPERIMENT_CONDITIONS.slice(1), experimentCondition);
+    var middleBound = include(EXPERIMENT_CONDITIONS.slice(3), experimentCondition);
+    var upperBound = include(EXPERIMENT_CONDITIONS.slice(5), experimentCondition);
 
     var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
 
@@ -121,7 +121,7 @@ var hideKnowledgeBox = function(knowledgeBox){
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
     if(experimentCondition === "unchanged"){
-
+        return;
     }
 
     //locates any potential dom elements to remove
@@ -156,7 +156,7 @@ var removeDOMElements = function() {
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
 
                 //hides the answer box if it is from WikiData
-                if (!isSourced && include(EXPERIMENT_CONDITIONS.splice(3),experimentCondition)) {
+                if (!isSourced && include(EXPERIMENT_CONDITIONS.slice(3),experimentCondition)) {
                     hide(answers[i]);
                     logEntry.removeAnswerBox = true;
                 }
@@ -189,7 +189,7 @@ var removeDOMElements = function() {
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
         logEntry.knowledgeChartSize = getElementSize(knowledgeChart);
-        if(include(EXPERIMENTCONDITIONS.splice(3), experimentCondition)) {
+        if(include(EXPERIMENT_CONDITIONS.slice(3), experimentCondition)) {
             hide(knowledgeChart);
             logEntry.knowledgeChartRemoved = true;
         }
@@ -301,9 +301,9 @@ var restorePage = function(observer) {
 }
 
 var restoreKnowledgeBox = function(knowledgeBox){
-    var lowerBound = include(EXPERIMENT_CONDITIONS.splice(0,1), experimentCondition);
-    var middleBound = include(EXPERIMENT_CONDITIONS.splice(0,3), experimentCondition);
-    var upperBound = include(EXPERIMENT_CONDITIONS.splice(0,5), experimentCondition);
+    var lowerBound = include(EXPERIMENT_CONDITIONS.slice(0,1), experimentCondition);
+    var middleBound = include(EXPERIMENT_CONDITIONS.slice(0,3), experimentCondition);
+    var upperBound = include(EXPERIMENT_CONDITIONS.slice(0,5), experimentCondition);
 
     console.log("restoring");
     var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
@@ -447,7 +447,7 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         }
 
         //stops future modifications from being made if not supposed to modify
-        if(experimentCondition !== "all") {
+        if(experimentCondition === "unchanged") {
             observer.disconnect();
         }
 
