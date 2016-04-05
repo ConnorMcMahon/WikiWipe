@@ -65,9 +65,15 @@ var include = function(arr,obj) {
 var getElementSize = function(element) {
     var id = element.getAttribute("data-hveid");
     if (!sizes[id]) {
+        if(!element.style.display){
+            return -1;
+        }
         var currentStyle = element.style.display;
+        console.log("style1:" + currentStyle);
         element.style.setProperty('display', 'block');
+        console.log("style2:" + currentStyle);
         sizes[id] = element.offsetHeight * element.offsetWidth;
+        console.log(sizes[id]);
         element.style.setProperty('display', currentStyle); 
     }
     return sizes[id]
@@ -86,14 +92,21 @@ var hideKnowledgeBox = function(knowledgeBox){
     var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
 
     if(lowerBound && description && description.childNodes.length > 1) {
+        logEntry.descriptionPresent = true;
+        logEntry.descriptionHidden = true;
         hide(description);
     }
 
-    if(middleBound && facts){
+    if(facts){
         for(var i =0; i < facts.length; i++){
             var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
             if(!include(NON_WIKI_FACTS, factLabel)){
-                hide(facts[i]);
+                
+                logEntry[factLabel+"_Factpresent"] = true;
+                if(middleBound) {
+                    logEntry[factLabel+"_Facthidden"] = true;
+                    hide(facts[i]);
+                }
             }
         } 
     }
@@ -103,9 +116,12 @@ var hideKnowledgeBox = function(knowledgeBox){
             var headings = categories[i].getElementsByClassName(HEADING_CLASS);
             if(headings[0]){
                 var heading = headings[0].childNodes[0].innerHTML;
+                logEntry[heading+"_Categorypresent"] = true;
                 if(middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)){
+                    logEntry[heading+"_Categoryhidden"] = true;
                     hide(categories[i]);
                 } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = true;
                     hide(categories[i]);
                 }
             }
@@ -248,6 +264,8 @@ var queryEnd = function(evt) {
         } catch(e) {
             console.log(e);
         }
+    } else {
+        console.log(logEntry);
     }
 
 }
@@ -313,6 +331,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
     var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
 
     if(lowerBound && description && description.childNodes.length > 1) {
+        logEntry.descriptionHidden = false;
         restore(description);
     }
 
@@ -320,7 +339,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
         for(var i =0; i < facts.length; i++){
             var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
             if(!include(NON_WIKI_FACTS, factLabel)){
-                console.log(factLabel);
+                logEntry[factLabel+"_Facthidden"] = false;
                 restore(facts[i]);
             }
         } 
@@ -332,8 +351,10 @@ var restoreKnowledgeBox = function(knowledgeBox){
             if (headings[0]) {
                 var heading = headings[0].childNodes[0].innerHTML;
                 if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = false;
                     restore(categories[i]);
                 } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = false;
                     restore(categories[i]);
                 }
             }
