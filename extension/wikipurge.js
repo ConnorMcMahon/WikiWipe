@@ -5,7 +5,7 @@ const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "m
 
 
 //Asset based constants
-const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw kno-kp g-blk';
+const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw g-blk';
 const QA_BOX_CLASS = 'kp-blk _Jw _thf _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 const ANSWERS_CLASS = 'g mnr-c g-blk';
@@ -15,13 +15,14 @@ const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe';
 const TWITTER_TAG = "g-snapping-carousel";
 
 //Knowledge assets
+const SEE_RESULTS_CLASS = "_eXg";
 const KNOWLEDGE_DESC_CLASS = "kno-rdesc";
 const KNOWLEDGE_TEXT_CLASS = "_RBg"
 const NON_WIKI_FACTS = ["Stock price", "Weather", "Hotels", "Getting there", "Local time"];
 const KNOWLEDGE_FACTS = "kno-fb-ctx";
 const HEADING_CLASS = "_W5e _X5e"
 const CATEGORY_CLASS = "_tN"
-const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Albums", "Songs", "TV Shows", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
+const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
 const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Roster", "Current Models", "Destination"];
 
 
@@ -69,11 +70,8 @@ var getElementSize = function(element) {
             return -1;
         }
         var currentStyle = element.style.display;
-        console.log("style1:" + currentStyle);
         element.style.setProperty('display', 'block');
-        console.log("style2:" + currentStyle);
         sizes[id] = element.offsetHeight * element.offsetWidth;
-        console.log(sizes[id]);
         element.style.setProperty('display', currentStyle); 
     }
     return sizes[id]
@@ -101,7 +99,6 @@ var hideKnowledgeBox = function(knowledgeBox){
         for(var i =0; i < facts.length; i++){
             var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
             if(!include(NON_WIKI_FACTS, factLabel)){
-                
                 logEntry[factLabel+"_Factpresent"] = true;
                 if(middleBound) {
                     logEntry[factLabel+"_Facthidden"] = true;
@@ -148,13 +145,21 @@ var removeDOMElements = function() {
     var twitterBox = document.getElementsByTagName(TWITTER_TAG)[0];
     
     if (knowledgeBoxes) {
-        logEntry.knowledgeBoxPresent = true;
+        
         for(var i = 0; i < knowledgeBoxes.length; i++){
-            logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
-            //hides the knowledge box  
-            hideKnowledgeBox(knowledgeBoxes[i]);
-            logEntry.removeKnowledgeBox = true;
-            
+            if (knowledgeBoxes[i].getElementsByClassName(SEE_RESULTS_CLASS).length > 0){
+                logEntry.seeResultsAboutPresent = true;
+                if (experimentCondition === "all"){
+                    logEntry.seeResultsAboutHidden = true;
+                    hide(knowledgeBoxes[i]);
+                }
+            } else {
+                logEntry.knowledgeBoxPresent = true;
+                logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
+                //hides the knowledge box  
+                hideKnowledgeBox(knowledgeBoxes[i]);
+                logEntry.removeKnowledgeBox = true;
+            }   
         }       
     }
 
@@ -381,9 +386,14 @@ var restoreModifications = function(state) {
     //restores knowledge boxes
     if (knowledgeBoxes) {
         for(var i = 0; i < knowledgeBoxes.length; i++) {
-            restoreKnowledgeBox(knowledgeBoxes[i]);
+            if (knowledgeBoxes[i].getElementsByClassName(SEE_RESULTS_CLASS).length > 0){
+                logEntry.seeResultsAboutHidden = false;
+                restore(knowledgeBoxes[i]);
+            } else {
+                restoreKnowledgeBox(knowledgeBoxes[i]);
+                logEntry.removeKnowledgeBox = false;
+            }
         }
-        logEntry.removeKnowledgeBox = false;
     }
 
     //restores answer boxes and if state is unchanged then also QA Boxes
