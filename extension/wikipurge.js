@@ -24,7 +24,7 @@ const NON_WIKI_FACTS = ["Stock price", "Weather", "Hotels", "Getting there", "Lo
 const KNOWLEDGE_FACTS = "kno-fb-ctx";
 const HEADING_CLASS = "_W5e _X5e"
 const CATEGORY_CLASS = "_tN"
-const CATEGORY_CLASS2 = "_Wtj"
+const CATEGORY_CLASS2 = "mod"
 const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Roster", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
 const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Current Models", "Destination"];
 
@@ -101,14 +101,17 @@ var hideKnowledgeBox = function(knowledgeBox){
 
     if(facts){
         for(var i =0; i < facts.length; i++){
-            var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
-            if(!include(NON_WIKI_FACTS, factLabel)){
-                logEntry[factLabel+"_Factpresent"] = true;
-                if(middleBound) {
-                    logEntry[factLabel+"_Facthidden"] = true;
-                    hide(facts[i]);
+            try {
+                var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
+                if(!include(NON_WIKI_FACTS, factLabel)){
+                    logEntry[factLabel+"_Factpresent"] = true;
+                    if(middleBound) {
+                        logEntry[factLabel+"_Facthidden"] = true;
+                        hide(facts[i]);
+                    }
                 }
-            }
+            } catch(e) {}
+
         } 
     }
 
@@ -117,7 +120,7 @@ var hideKnowledgeBox = function(knowledgeBox){
             var headings = categories[i].getElementsByClassName(HEADING_CLASS);
             if(headings[0]){
                 var heading = headings[0].childNodes[0].innerHTML;
-                if(heading.innerHTML){
+                if(heading && heading.innerHTML){
                     heading = heading.innerHTML.innerHTML
                 }
                 logEntry[heading+"_Categorypresent"] = true;
@@ -138,7 +141,7 @@ var hideKnowledgeBox = function(knowledgeBox){
             var headings = categories2[i].getElementsByClassName(HEADING_CLASS);
             if(headings[0]){
                 var heading = headings[0].childNodes[0].innerHTML;
-                if(heading.innerHTML){
+                if(heading && heading.innerHTML){
                     heading = heading.innerHTML.innerHTML
                 }
                 logEntry[heading+"_Categorypresent"] = true;
@@ -391,11 +394,14 @@ var restoreKnowledgeBox = function(knowledgeBox){
 
     if(middleBound && facts){
         for(var i =0; i < facts.length; i++){
-            var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
-            if(!include(NON_WIKI_FACTS, factLabel)){
-                logEntry[factLabel+"_Facthidden"] = false;
-                restore(facts[i]);
-            }
+            try {
+                var factLabel = facts[i].getElementsByClassName("fl")[0].innerHTML;
+                if(!include(NON_WIKI_FACTS, factLabel)){
+                    logEntry[factLabel+"_Facthidden"] = false;
+                    restore(facts[i]);
+                }
+            } catch (e) {}
+
         } 
     }
 
@@ -404,7 +410,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
             var headings = categories[i].getElementsByClassName(HEADING_CLASS);
             if (headings[0]) {
                 var heading = headings[0].childNodes[0].innerHTML;
-                if(heading.innerHTML){
+                if(heading && heading.innerHTML){
                     heading = heading.innerHTML.innerHTML
                 }
                 if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
@@ -423,7 +429,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
             var headings = categories2[i].getElementsByClassName(HEADING_CLASS);
             if (headings[0]) {
                 var heading = headings[0].childNodes[0].innerHTML;
-                if(heading.innerHTML){
+                if(heading && heading.innerHTML){
                     heading = heading.innerHTML.innerHTML
                 }
                 if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
