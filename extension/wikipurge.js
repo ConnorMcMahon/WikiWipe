@@ -6,7 +6,7 @@ const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "m
 
 //Asset based constants
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw g-blk';
-const QA_BOX_CLASS = 'kp-blk _Jw _thf _Rqb _RJe'
+const QA_BOX_CLASS = 'kp-blk _thf _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 const ANSWERS_CLASS = 'g mnr-c g-blk';
 const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe";
@@ -200,7 +200,7 @@ var removeDOMElements = function() {
         for(var i = 0; i < answers.length; i++){
             var targetElement = answers[i].childNodes[0];
             var isAnswerBox = (targetElement.getAttribute("class") == ANSWER_BOX_CLASS);
-            var isQABox = (targetElement.getAttribute("class") == QA_BOX_CLASS);
+            var isQABox = answers[i].getElementsByClassName(QA_BOX_CLASS).length > 0;
             var isContextAnswer = (targetElement.getAttribute("class") == CONTEXT_ANSWER_CLASS);
 
             if (isAnswerBox) {
@@ -227,6 +227,7 @@ var removeDOMElements = function() {
                         logEntry.questionsRemoved += 1
                     }
                 }
+                hide(answers[i]);
             } else if (isContextAnswer) {
                 logEntry.contextAnswerBoxPresent = true;
                 logEntry.contextAnswerBoxSize = getElementSize(answers[i]);
@@ -491,6 +492,7 @@ var restoreModifications = function(state) {
                 for(var j = 0; j < questions.length; j++){
                     restore(questions[j]);
                 }
+                restore(answers[i]);
                 logEntry.questionsRemoved = 0;
             } else if (state === "unchanged" && isContextAnswer){
                 logEntry.contextAnswerBoxPresent = false;
