@@ -13,7 +13,7 @@ const ANSWER_BOX_CLASS = "kp-blk _rod _Rqb _RJe";
 const KNOWLEDGE_TABLE_ID = "kx";
 const CONTEXT_ANSWER_CLASS = 'kp-blk _Z7 _Rqb _RJe';
 const TWITTER_TAG = "g-snapping-carousel";
-const SCORES_CLASS = "obcontainer";
+const SCORES_CLASS = "xpdbox";
 const LOCATION_CLASS = "_Xhb";
 
 //Knowledge assets
