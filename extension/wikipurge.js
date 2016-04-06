@@ -486,6 +486,7 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     console.log(response);
     //Establish starttime
     logEntry.startTime = Date.now();
+    experimentCondition = response.experimentCondition;
 
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
@@ -504,12 +505,12 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         logEntry.sessionID = sessionInfo.id; 
 
         // experimentInProgress = false;
-        if(!experimentInProgress) {
-            experimentCondition = "unchanged";
-        } else {
-            experimentCondition = sessionInfo.experimentCondition;
-            logEntry.experimentCondition = experimentCondition;
-        }
+        // if(!experimentInProgress) {
+        //     experimentCondition = "unchanged";
+        // } else {
+        //     experimentCondition = sessionInfo.experimentCondition;
+        //     logEntry.experimentCondition = experimentCondition;
+        // }
 
         //stops future modifications from being made if not supposed to modify
         if(experimentCondition === "unchanged") {

@@ -1,5 +1,7 @@
 var userID;
 var startTime;
+const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
+var stateCounter = 0;
 
 //Generate an unused user id
 var generateToken = function(callback) {
@@ -32,14 +34,22 @@ chrome.storage.sync.get('starttime', function(items) {
 	}
 });
 
+chrome.browserAction.onClicked.addListener(function(tab) {
+    stateCounter = (stateCounter + 1) % EXPERIMENT_CONDITIONS.length; 
+    chrome.browserAction.setTitle({title: EXPERIMENT_CONDITIONS[stateCounter]});
+});
+
+// chrome.browserAction.setTitle({title: EXPERIMENT_CONDITIONS[stateCounter]});
+
 //Tries to disable answers from appearing in omnibox
-chrome.omnibox.setDefaultSuggestion({description: "Autofill disabled"});
+// chrome.omnibox.setDefaultSuggestion({description: "Autofill disabled"});
 
 //Adds message listener to return user ID and experiment state
 chrome.runtime.onMessage.addListener(function (req, send, sendResponse) {
 	var response = {
 		"userID": userID,
-		"startTime": startTime
+		"startTime": startTime,
+        "experimentCondition": EXPERIMENT_CONDITIONS[stateCounter]
 	}
     if (req.cmd === "getUserInfo") {
     	console.log(response);
