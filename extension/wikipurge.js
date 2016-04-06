@@ -24,8 +24,9 @@ const NON_WIKI_FACTS = ["Stock price", "Weather", "Hotels", "Getting there", "Lo
 const KNOWLEDGE_FACTS = "kno-fb-ctx";
 const HEADING_CLASS = "_W5e _X5e"
 const CATEGORY_CLASS = "_tN"
-const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
-const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Roster", "Current Models", "Destination"];
+const CATEGORY_CLASS2 = "_Wtj"
+const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Roster", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
+const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Current Models", "Destination"];
 
 
 //Link based constants
@@ -90,6 +91,7 @@ var hideKnowledgeBox = function(knowledgeBox){
     var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
     var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
     var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
+    var categories2 = knowledgeBox.getElementsByClassName(CATEGORY_CLASS2);
 
     if(lowerBound && description && description.childNodes.length > 1) {
         logEntry.descriptionPresent = true;
@@ -115,6 +117,9 @@ var hideKnowledgeBox = function(knowledgeBox){
             var headings = categories[i].getElementsByClassName(HEADING_CLASS);
             if(headings[0]){
                 var heading = headings[0].childNodes[0].innerHTML;
+                if(heading.innerHTML){
+                    heading = heading.innerHTML.innerHTML
+                }
                 logEntry[heading+"_Categorypresent"] = true;
                 if(middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)){
                     logEntry[heading+"_Categoryhidden"] = true;
@@ -122,6 +127,27 @@ var hideKnowledgeBox = function(knowledgeBox){
                 } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
                     logEntry[heading+"_Categoryhidden"] = true;
                     hide(categories[i]);
+                }
+            }
+        }
+    }
+
+
+    if(categories2){
+        for(var i = 0 ; i < categories2.length; i++){
+            var headings = categories2[i].getElementsByClassName(HEADING_CLASS);
+            if(headings[0]){
+                var heading = headings[0].childNodes[0].innerHTML;
+                if(heading.innerHTML){
+                    heading = heading.innerHTML.innerHTML
+                }
+                logEntry[heading+"_Categorypresent"] = true;
+                if(middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)){
+                    logEntry[heading+"_Categoryhidden"] = true;
+                    hide(categories2[i]);
+                } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = true;
+                    hide(categories2[i]);
                 }
             }
         }
@@ -356,6 +382,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
     var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
     var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
     var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
+    var categories2 = knowledgeBox.getElementsByClassName(CATEGORY_CLASS2);
 
     if(lowerBound && description && description.childNodes.length > 1) {
         logEntry.descriptionHidden = false;
@@ -377,12 +404,34 @@ var restoreKnowledgeBox = function(knowledgeBox){
             var headings = categories[i].getElementsByClassName(HEADING_CLASS);
             if (headings[0]) {
                 var heading = headings[0].childNodes[0].innerHTML;
+                if(heading.innerHTML){
+                    heading = heading.innerHTML.innerHTML
+                }
                 if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
                     logEntry[heading+"_Categoryhidden"] = false;
                     restore(categories[i]);
                 } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
                     logEntry[heading+"_Categoryhidden"] = false;
                     restore(categories[i]);
+                }
+            }
+        }
+    }
+
+    if(categories2){
+        for (var i = 0 ; i < categories2.length; i++) {
+            var headings = categories2[i].getElementsByClassName(HEADING_CLASS);
+            if (headings[0]) {
+                var heading = headings[0].childNodes[0].innerHTML;
+                if(heading.innerHTML){
+                    heading = heading.innerHTML.innerHTML
+                }
+                if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = false;
+                    restore(categories2[i]);
+                } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                    logEntry[heading+"_Categoryhidden"] = false;
+                    restore(categories2[i]);
                 }
             }
         }
