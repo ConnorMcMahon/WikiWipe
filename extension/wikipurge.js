@@ -337,6 +337,18 @@ var queryEnd = function(evt) {
         } catch(e) {
             console.log(e);
         }
+        //creates the mutation observer that hides wiki related DOM objects
+        observer.observe(ELEMENT_PARENT, {
+            childList: true,
+            subtree: true
+        });
+
+        //after a specified ammount of time, page is displayed to the user.
+        setInterval(function() {
+            restoreModifications(experimentCondition);
+            restorePage(observer);
+            console.log(logEntry);
+        }, PAGE_DELAY);
     } else {
         console.log(logEntry);
     }
