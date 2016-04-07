@@ -45,15 +45,15 @@ const CITE_CLASS = '_Rm'
 
 //Global Vars
 var logEntry = {};
-var removedLinks = []
+var removedLinks = [];
 
 //Set to remove all by default
-var experimentCondition = "all"
+var experimentCondition = "all";
 var experimentInProgress = true;
 
 var alreadyLogged =false;
 
-var sizes = {}
+var sizes = {};
 
 var hide = function(element) {
     element.style.setProperty('display', 'none');
@@ -342,13 +342,6 @@ var queryEnd = function(evt) {
             childList: true,
             subtree: true
         });
-
-        //after a specified ammount of time, page is displayed to the user.
-        setInterval(function() {
-            restoreModifications(experimentCondition);
-            restorePage(observer);
-            console.log(logEntry);
-        }, PAGE_DELAY);
     } else {
         console.log(logEntry);
     }
@@ -632,6 +625,17 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
             console.log(logEntry);
         }, PAGE_DELAY);
     });
-
 });
 
+var reload = function() {
+    console.log("resetting script");
+    location.reload();
+}
+
+var currentHash = window.location.hash
+
+setInterval(function(){
+    if(currentHash !== window.location.hash){
+        location.reload();
+    }
+}, 100);
