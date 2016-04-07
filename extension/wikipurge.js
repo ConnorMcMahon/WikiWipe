@@ -28,6 +28,7 @@ const CATEGORY_CLASS = "_tN"
 const CATEGORY_CLASS2 = "mod"
 const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Roster", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
 const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Current Models", "Destination"];
+const PICTURE_CLASS = "kno-ibrg";
 
 
 //Link based constants
@@ -50,6 +51,7 @@ var removedLinks = [];
 //Set to remove all by default
 var experimentCondition = "all";
 var experimentInProgress = true;
+var reloadAllowed = true;
 
 var alreadyLogged =false;
 
@@ -432,22 +434,29 @@ var restoreKnowledgeBox = function(knowledgeBox){
 
     if(categories){
         for (var i = 0 ; i < categories.length; i++) {
-            var headings = categories[i].getElementsByClassName(HEADING_CLASS);
-            if (headings[0]) {
-                var heading = headings[0].childNodes[0].innerHTML;
-                if(heading && heading.innerHTML){
-                    heading = heading.innerHTML.innerHTML
+            try {
+                var headings = categories[i].getElementsByClassName(HEADING_CLASS);
+                if (headings[0]) {
+                    var heading = headings[0].childNodes[0].innerHTML;
+                    if(heading && heading.innerHTML){
+                        heading = heading.innerHTML.innerHTML
+                    }
+                    if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
+                        logEntry.probablyWiki = true;
+                        logEntry[heading+"_Categoryhidden"] = false;
+                        restore(categories[i]);
+                    } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
+                        logEntry.possiblyWiki = true;
+                        logEntry[heading+"_Categoryhidden"] = false;
+                        restore(categories[i]);
+                    } else {
+                        restore(categories[i]);
+                    }
                 }
-                if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
-                    logEntry.probablyWiki = true;
-                    logEntry[heading+"_Categoryhidden"] = false;
-                    restore(categories[i]);
-                } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
-                    logEntry.possiblyWiki = true;
-                    logEntry[heading+"_Categoryhidden"] = false;
-                    restore(categories[i]);
-                }
+            } catch(e) {
+                restore(categories[i]);
             }
+
         }
     }
 
@@ -466,6 +475,8 @@ var restoreKnowledgeBox = function(knowledgeBox){
                 } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
                     logEntry.possiblyWiki = true;
                     logEntry[heading+"_Categoryhidden"] = false;
+                    restore(categories2[i]);
+                } else {
                     restore(categories2[i]);
                 }
             }
@@ -565,6 +576,13 @@ var restoreModifications = function(state) {
     if (extraWikiLinks && !include(["lowerbound+links", "middlebound+links", "upperbound+links", "all"], experimentCondition)){
         restore(extraWikiLinks);
     }
+
+    var picture = document.getElementsByClassName("PICTURE_CLASS");
+    if(picture){
+        for(var i = 0; i < picture.length; i++){
+            restore(picture[i]);
+        }
+    }
     
 }
 
@@ -573,6 +591,10 @@ observer.observe(ELEMENT_PARENT, {
     childList: true,
     subtree: true
 });
+
+var blockReload = function(){
+    reloadAllowed = false;
+}
 
 //Get the value of whether the script is running
 chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
@@ -615,6 +637,7 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         //Ensure that if the page is exited out of it is logged
         //uses beforeunload instead of unload to allow click event to occur
         window.addEventListener("beforeunload", function(evt) {
+            blockReload();
             queryEnd(evt);
         });
 
@@ -633,9 +656,10 @@ var reload = function() {
 }
 
 var currentHash = window.location.hash
+var prefix = window.location.href.replace(window.location.hash, '');
 
 setInterval(function(){
-    if(currentHash !== window.location.hash){
+    if(currentHash !== window.location.hash && reloadAllowed){
         location.reload();
     }
 }, 100);
