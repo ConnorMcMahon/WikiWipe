@@ -601,7 +601,7 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     console.log(response);
     //Establish starttime
     logEntry.startTime = Date.now();
-    experimentCondition = response.experimentCondition;
+    // experimentCondition = response.experimentCondition;
 
     //establish the listeners on the loggers
     if (document.readyState != 'loading'){
@@ -620,12 +620,12 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         logEntry.sessionID = sessionInfo.id; 
 
         // experimentInProgress = false;
-        // if(!experimentInProgress) {
-        //     experimentCondition = "unchanged";
-        // } else {
-        //     experimentCondition = sessionInfo.experimentCondition;
-        //     logEntry.experimentCondition = experimentCondition;
-        // }
+        if(!experimentInProgress) {
+            experimentCondition = "unchanged";
+        } else {
+            experimentCondition = sessionInfo.experimentCondition;
+            logEntry.experimentCondition = experimentCondition;
+        }
 
         //stops future modifications from being made if not supposed to modify
         if(experimentCondition === "unchanged") {
@@ -646,20 +646,24 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         setTimeout(function() {
             restorePage(observer);
             console.log(logEntry);
+            var reload = function() {
+                console.log("resetting script");
+                location.reload();
+            }
+
+            var currentHash = window.location.hash
+
+            setInterval(function(){
+                if (!currentHash){
+                    currentHash = window.location.hash;
+                } else if(currentHash !== window.location.hash && reloadAllowed){
+                    alert(currentHash + window.location.hash);
+                    location.reload();
+                }
+            }, 100);
         }, PAGE_DELAY);
     });
 });
 
-var reload = function() {
-    console.log("resetting script");
-    location.reload();
-}
 
-var currentHash = window.location.hash
-var prefix = window.location.href.replace(window.location.hash, '');
 
-setInterval(function(){
-    if(currentHash !== window.location.hash && reloadAllowed){
-        location.reload();
-    }
-}, 100);
