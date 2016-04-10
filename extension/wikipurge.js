@@ -657,7 +657,6 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
                 if (!currentHash){
                     currentHash = window.location.hash;
                 } else if(currentHash !== window.location.hash && reloadAllowed){
-                    alert(currentHash + window.location.hash);
                     location.reload();
                 }
             }, 100);
