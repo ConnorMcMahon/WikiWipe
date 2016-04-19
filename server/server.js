@@ -149,15 +149,15 @@ router.get('/getLatestSessionID', function(req, resp) {
     });
 });
 
-router.get('/getSessions', function(req, resp) {
-    MongoClient.connect(url, function(err, db) {
-        assert.equal(null, err);
-        getSessions(db, "search_session", function(docs) {
-            db.close();
-            resp.send(docs);
-        });
-    });
-});
+// router.get('/getSessions', function(req, resp) {
+//     MongoClient.connect(url, function(err, db) {
+//         assert.equal(null, err);
+//         getSessions(db, "search_session", function(docs) {
+//             db.close();
+//             resp.send(docs);
+//         });
+//     });
+// });
 
 router.post('/addSession', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
@@ -211,15 +211,15 @@ router.get('/getLatestWikiSessionID', function(req, resp) {
     });
 });
 
-router.get('/getWikiSessions', function(req, resp) {
-    MongoClient.connect(url, function(err, db) {
-        assert.equal(null, err);
-        getSessions(db, "wiki_session", function(docs) {
-            db.close();
-            resp.send(docs);
-        });
-    });
-});
+// router.get('/getWikiSessions', function(req, resp) {
+//     MongoClient.connect(url, function(err, db) {
+//         assert.equal(null, err);
+//         getSessions(db, "wiki_session", function(docs) {
+//             db.close();
+//             resp.send(docs);
+//         });
+//     });
+// });
 
 app.use('', router)
 
