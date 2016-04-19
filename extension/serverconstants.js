@@ -1,5 +1,34 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
+const control_weight = .33;
+const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
+const other_weight = (1-control_weight) / (EXPERIMENT_CONDITIONS.length-1);
+
+var weight_list = [control_weight];
+for(var i = 0; i < EXPERIMENT_CONDITIONS.length-1; i++){
+    weight_list.push(other_weight);
+}
+
+
+var generateWeighedList = function(list, weight) {
+    var weighed_list = [];
+     
+    // Loop over weights
+    for (var i = 0; i < weight.length; i++) {
+        var multiples = weight[i] * 100;
+         
+        // Loop over the list of items
+        for (var j = 0; j < multiples; j++) {
+            weighed_list.push(list[i]);
+        }
+    }
+     
+    return weighed_list;
+};
+
+
+
+
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {
@@ -16,7 +45,7 @@ var updateServer = function(type, logEntry) {
 }
 
 var getNewExperimentCondition = function(type, userID, sessionID) {
-    var condition = EXPERIMENT_CONDITIONS[Math.floor(Math.random() * EXPERIMENT_CONDITIONS.length)];
+    var condition = weighted_list[Math.floor(Math.random() * weighted_list.length)];
     var queryString;
     if(type === "search") {
         queryString = "/addSession";
@@ -46,7 +75,6 @@ var getLatestSessionInfo = function(type, userID, callback) {
         type:  "GET",
         url:  SERVER + queryString + "?id=" + userID,
         success: function(data) {
-            console.log(data);
             var sessionInfo = {}
             if(data.id) {
                 if(data.lastTimestamp) {
@@ -67,10 +95,8 @@ var getLatestSessionInfo = function(type, userID, callback) {
                 sessionInfo.id = 1;
                 sessionInfo.experimentCondition = getNewExperimentCondition(type, userID, sessionInfo.id);
             }
-            console.log(sessionInfo);
             callback(sessionInfo);
         }
     });
-    // callback({id: 1, experimentCondition:"all"});
 }
 

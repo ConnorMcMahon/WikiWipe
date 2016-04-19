@@ -1,7 +1,7 @@
 const ELEMENT_PARENT = document.body;
 const PAGE_DELAY = 1000*.3;
 const EXPERIMENT_DURATION = 1000 * 60 * 60 * 24 * 7 * 3; //milliseconds in 3 weeks
-const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
+// const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
 
 
 //Asset based constants
@@ -273,8 +273,7 @@ var removeDOMElements = function() {
                 logEntry.wikiLinks = true;
             }
             //hides the link if it is from wikipedia
-            if (isWikiLink && removedLinks.indexOf(id) === -1 && include(["lowerbound+links", "middlebound+links", "upperbound+links", "all"], experimentCondition)){
-                console.log("hidding link");
+            if (isWikiLink && removedLinks.indexOf(id) === -1 && include(["lowerbound+links", "middlebound+links", "upperbound+links"], experimentCondition)){
                 hide(searchResults[i]);
                 removedLinks.push(id);
                 logEntry.numWikiLinksRemoved += 1;           
@@ -344,10 +343,7 @@ var queryEnd = function(evt) {
             childList: true,
             subtree: true
         });
-    } else {
-        console.log(logEntry);
     }
-
 }
 
 //Finds all entities that could indicate a new search query after page loads
@@ -403,7 +399,6 @@ var restoreKnowledgeBox = function(knowledgeBox){
     var middleBound = include(EXPERIMENT_CONDITIONS.slice(0,3), experimentCondition);
     var upperBound = include(EXPERIMENT_CONDITIONS.slice(0,5), experimentCondition);
 
-    console.log("restoring");
     var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
 
     var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
@@ -487,7 +482,6 @@ var restoreKnowledgeBox = function(knowledgeBox){
 }
 
 var restoreModifications = function(state) {
-    console.log(state);
     //if all UCG content is to be removed, nothing needs to be restored
     if (state === "all"){
         return;
@@ -551,7 +545,6 @@ var restoreModifications = function(state) {
 
      //restores search results
     if (include(["unchanged", "lowerbound", "middlebound", "upperbound"], experimentCondition) && searchResults) {
-        console.log("restoring search results");
         for(var i = 0; i < searchResults.length; i++) {
             restore(searchResults[i]);
         }
@@ -598,7 +591,6 @@ var blockReload = function(){
 
 //Get the value of whether the script is running
 chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
-    console.log(response);
     //Establish starttime
     logEntry.startTime = Date.now();
     // experimentCondition = response.experimentCondition;
@@ -645,7 +637,6 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
         //after a specified ammount of time, page is displayed to the user.
         setTimeout(function() {
             restorePage(observer);
-            console.log(logEntry);
             var reload = function() {
                 console.log("resetting script");
                 location.reload();
