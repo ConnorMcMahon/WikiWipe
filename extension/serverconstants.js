@@ -26,9 +26,7 @@ var generateWeighedList = function(list, weight) {
     return weighed_list;
 };
 
-
-
-
+weighted_list = generateWeighedList(EXPERIMENT_CONDITIONS, weight_list);
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {

@@ -1,15 +1,14 @@
 {
   "manifest_version": 2,
 
-  "name": "WikiWipe",
+  "name": "Chrome usage study",
   "description": "This extension attempts to remove wikipedia information",
   "version": "0.8",
   "background": {
     "scripts": ["jquery.js", "serverconstants.js", "background.js"]
   },
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_title": "unchanged"
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
@@ -24,6 +23,7 @@
   ],
   "omnibox": {"keyword": "*"},
   "permissions": [
+    "contextMenus",
     "activeTab",
     "storage"
   ]

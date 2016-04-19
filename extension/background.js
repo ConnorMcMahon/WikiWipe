@@ -16,6 +16,7 @@ var generateToken = function(callback) {
     });
 }
 
+
 //Grabs existing user id or generates new one and sets it to storage
 chrome.storage.sync.get('userid', function(items) {
     userID = items.userid;
@@ -33,6 +34,7 @@ chrome.storage.sync.get('starttime', function(items) {
 		chrome.storage.sync.set({starttime: startTime});
 	}
 });
+
 
 // chrome.browserAction.onClicked.addListener(function(tab) {
 //     stateCounter = (stateCounter + 1) % EXPERIMENT_CONDITIONS.length; 
