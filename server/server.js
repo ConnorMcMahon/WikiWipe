@@ -104,6 +104,29 @@ var addUserID = function(db, id) {
     });
 }
 
+var removeUserID = function(db,id,callback) {
+    db.collection("search_session").deleteMany(
+        {userID: id}
+    );
+    db.collection("wiki_session").deleteMany(
+        {userID: id}
+    );
+    callback("Removed data");
+}
+
+router.post('/deleteUserID', function(req,resp) {
+    MongoClient.connect(url, function(err,db) {
+        assert.equal(null, err);
+        if (req.password === "withdrawfromstudy") {
+            removeUserID(db, req.id, resp.send);
+        } else {
+            resp.send("Wrong password");
+        }
+        
+        db.close();
+    });
+});
+
 
 router.get('/getNewUserID', function(req, resp) {
     MongoClient.connect(url, function(err, db) {
