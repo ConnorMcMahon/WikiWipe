@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "Chrome usage study",
-  "description": "This extension attempts to remove wikipedia information",
-  "version": "0.8",
+  "name": "University of Minnesota Chrome Usage Study",
+  "description": "This extension is a tool to gather Chrome usage information for a study conducted by the University of Minnesota - Twin Cities.",
+  "version": "0.0.0.1",
   "background": {
     "scripts": ["jquery.js", "serverconstants.js", "background.js"]
   },
@@ -22,6 +22,9 @@
     }
   ],
   "omnibox": {"keyword": "*"},
+  "icons": {"16": "icon.png",
+            "32": "icon.png",
+            "128": "icon.png"},
   "permissions": [
     "contextMenus",
     "activeTab",

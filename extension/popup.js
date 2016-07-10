@@ -1,7 +1,7 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 document.addEventListener('DOMContentLoaded', documentEvents  , false);
 
-function myAction(input) { 
+function Withdraw(input) { 
     chrome.storage.sync.get('userid', function(items){
         userID = items.userid;
         console.log(userID);
@@ -24,8 +24,31 @@ function myAction(input) {
     });
 }
 
+function Enroll(input) { 
+    chrome.storage.sync.get('userid', function(items){
+        userID = items.userid;
+        if(!userID){
+            jQuery.ajax({
+                type: "POST",
+                data: {passcode: input.value },
+                url: SERVER + "/getNewUserID",
+                success: function(data) {
+                    userID = parseInt(data);
+                    chrome.storage.sync.set({userid: userID});
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    alert("Status: " + textStatus); alert("Error: " + errorThrown); 
+                }
+            });
+        }
+    });
+}
+
 function documentEvents() {   
     document.getElementById('ok_btn').addEventListener('click', 
-        function() { myAction(document.getElementById('name_textbox'));
+        function() { Withdraw(document.getElementById('name_textbox'));
+    });
+    document.getElementById('enroll_btn').addEventListener('click', 
+        function() { Enroll(document.getElementById('name_textbox'));
     });
 }

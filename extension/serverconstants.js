@@ -2,13 +2,13 @@ const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
 const control_weight = .33;
 const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
+// const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets", "assets+links"]
 const other_weight = (1-control_weight) / (EXPERIMENT_CONDITIONS.length-1);
 
 var weight_list = [control_weight];
 for(var i = 0; i < EXPERIMENT_CONDITIONS.length-1; i++){
     weight_list.push(other_weight);
 }
-
 
 var generateWeighedList = function(list, weight) {
     var weighed_list = [];
@@ -30,6 +30,7 @@ weighted_list = generateWeighedList(EXPERIMENT_CONDITIONS, weight_list);
 
 //Send the log entry to the server
 var updateServer = function(type, logEntry) {
+    console.log(logEntry);
 	var queryString;
 	if(type === "search") {
 		queryString = "/addLog";
@@ -39,7 +40,13 @@ var updateServer = function(type, logEntry) {
     logEntry.timestamp = Date.now();
 
     var blob = new Blob([JSON.stringify(logEntry)], {type : 'application/json; charset=UTF-8'});
-    navigator.sendBeacon(SERVER+queryString, blob);
+    // var client = new XMLHttpRequest();
+    // client.open("POST", SERVER+queryString, true); // third parameter indicates sync xhr
+    // client.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+    // client.send(blob);
+
+    var success = navigator.sendBeacon(SERVER+queryString, blob);
+    // console.log(success);
 }
 
 var getNewExperimentCondition = function(type, userID, sessionID) {

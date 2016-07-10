@@ -1,8 +1,6 @@
 const ELEMENT_PARENT = document.body;
 const PAGE_DELAY = 1000*.3;
 const EXPERIMENT_DURATION = 1000 * 60 * 60 * 24 * 7 * 3; //milliseconds in 3 weeks
-// const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
-
 
 //Asset based constants
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw g-blk';
@@ -26,7 +24,7 @@ const KNOWLEDGE_FACTS = "kno-fb-ctx";
 const HEADING_CLASS = "_W5e _X5e"
 const CATEGORY_CLASS = "_tN"
 const CATEGORY_CLASS2 = "mod"
-const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Roster", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Books", "Colleges and Universities", "Cast"];
+const PROBABLY_WIKI_CATEGORIES = ["Breeds", "Roster", "Albums", "Songs", "TV Shows","Movies and TV shows", "Movies", "Notable Alumni", "Points of interest", "Plays", "Lower classifications", "Books", "Colleges and Universities", "Cast"];
 const POSSIBLY_WIKI_CATEGORIES = ["Quotes", "Current Models", "Destination"];
 const PICTURE_CLASS = "kno-ibrg";
 
@@ -49,7 +47,7 @@ var logEntry = {};
 var removedLinks = [];
 
 //Set to remove all by default
-var experimentCondition = "all";
+var experimentCondition = "upperbound+links";
 var experimentInProgress = true;
 var reloadAllowed = true;
 
@@ -67,20 +65,6 @@ var restore = function(element) {
 
 var include = function(arr,obj) {
     return (arr.indexOf(obj) !== -1);
-}
-
-var getElementSize = function(element) {
-    var id = element.getAttribute("data-hveid");
-    if (!sizes[id]) {
-        if(!element.style.display){
-            return -1;
-        }
-        var currentStyle = element.style.display;
-        element.style.setProperty('display', 'block');
-        sizes[id] = element.offsetHeight * element.offsetWidth;
-        element.style.setProperty('display', currentStyle); 
-    }
-    return sizes[id]
 }
 
 var hideKnowledgeBox = function(knowledgeBox){ 
@@ -197,7 +181,6 @@ var removeDOMElements = function() {
                 }
             } else {
                 logEntry.knowledgeBoxPresent = true;
-                logEntry.knowledgeBoxSize = getElementSize(knowledgeBoxes[i]);
                 //hides the knowledge box  
                 hideKnowledgeBox(knowledgeBoxes[i]);
                 logEntry.removeKnowledgeBox = true;
@@ -214,7 +197,6 @@ var removeDOMElements = function() {
 
             if (isAnswerBox) {
                 logEntry.answerBoxPresent = true;
-                logEntry.answerBoxSize = getElementSize(answers[i]);
                 logEntry.probablyWiki = true;
                 //Find the source in the html
                 var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
@@ -226,21 +208,22 @@ var removeDOMElements = function() {
                 }
             } else if (isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
-                logEntry.questionsSize = getElementSize(answers[i]);
                 logEntry.questionsFound = questions.length;
                 logEntry.questionsRemoved = 0;
                 for(var j = 0; j < questions.length; j++){
-                    var answerLink = questions[j].getElementsByClassName(CITE_CLASS)[0].innerHTML;
-                    var isWikiLink = WIKI_REGEX.test(answerLink);
-                    if (isWikiLink && experimentCondition !== "unchanged") {
-                        hide(questions[j]);
-                        logEntry.questionsRemoved += 1
+                    var answerElement = questions[j].getElementsByClassName(CITE_CLASS)[0];
+                    if(answerElement){
+                        var answerLink = answerElement.innerHTML;
+                        var isWikiLink = WIKI_REGEX.test(answerLink);
+                        if (isWikiLink && experimentCondition !== "unchanged") {
+                            hide(questions[j]);
+                            logEntry.questionsRemoved += 1
+                        }
                     }
                 }
                 hide(answers[i]);
             } else if (isContextAnswer) {
                 logEntry.contextAnswerBoxPresent = true;
-                logEntry.contextAnswerBoxSize = getElementSize(answers[i]);
                 var hyperLink = answers[i].getElementsByClassName("r")[0].childNodes[0];
                 var isWikiLink = WIKI_REGEX.test(hyperLink.getAttribute('href'));
                 if (isWikiLink && experimentCondition !== "unchanged") {
@@ -253,7 +236,6 @@ var removeDOMElements = function() {
 
     if (knowledgeChart){
         logEntry.knowledgeChartPresent = true;
-        logEntry.knowledgeChartSize = getElementSize(knowledgeChart);
         logEntry.probablyWiki = true;
         if(include(EXPERIMENT_CONDITIONS.slice(3), experimentCondition)) {
             hide(knowledgeChart);
@@ -263,8 +245,10 @@ var removeDOMElements = function() {
 
     if (searchResults) {
         for(var i = 0; i < searchResults.length; i++){
+
             //finds the link of the search result
             var linkName = searchResults[i].childNodes[0].childNodes[0].href
+            
             //determines if link is from wikipedia using regex
             var isWikiLink = WIKI_REGEX.test(linkName);
 
@@ -272,8 +256,10 @@ var removeDOMElements = function() {
             if (isWikiLink){
                 logEntry.wikiLinks = true;
             }
+
             //hides the link if it is from wikipedia
-            if (isWikiLink && removedLinks.indexOf(id) === -1 && include(["lowerbound+links", "middlebound+links", "upperbound+links"], experimentCondition)){
+            if (isWikiLink && removedLinks.indexOf(id) === -1 && include(["lowerbound+links", "middlebound+links", "upperbound+links", "all+links"], experimentCondition)){
+                
                 hide(searchResults[i]);
                 removedLinks.push(id);
                 logEntry.numWikiLinksRemoved += 1;           
@@ -283,7 +269,6 @@ var removeDOMElements = function() {
 
     if(twitterBox) {
         logEntry.twitterPresent = true;
-        logEntry.twitterSize = getElementSize(twitterBox);
         if(experimentCondition === "all"){
             logEntry.twitterRemoved = true;
             hide(twitterBox);
@@ -292,7 +277,6 @@ var removeDOMElements = function() {
 
     if(scoresBox) {
         logEntry.scorePresent = true;
-        logEntry.scoreSize = getElementSize(scoresBox);
         if(experimentCondition === "all"){
             logEntry.scoreRemoved = true;
             hide(scoresBox);
@@ -301,14 +285,13 @@ var removeDOMElements = function() {
 
     if(locationBox) {
         logEntry.locationPresent = true;
-        logEntry.locationSize = getElementSize(locationBox);
         if(experimentCondition === "all"){
             logEntry.locationRemoved = true;
             hide(locationBox);
         }
     }
 
-    if (extraWikiLinks && include(["lowerbound+links", "middlebound+links", "upperbound+links", "all"], experimentCondition)){
+    if (extraWikiLinks && include(["lowerbound+links", "middlebound+links", "upperbound+links", "all+links"], experimentCondition)){
         hide(extraWikiLinks);
     }
 
@@ -332,7 +315,7 @@ var queryEnd = function(evt) {
         try {
             var searchBox = document.getElementById(SEARCH_BOX_ID);
             logEntry.queryName = searchBox.value;
-
+            // logEntry.body = document.getElementById("rcnt").innerHTML;
             updateServer("search", logEntry);
 
         } catch(e) {
@@ -354,13 +337,6 @@ var initializeLoggingListeners = function(){
     var suggestedQuery = document.getElementsByClassName(DID_YOU_MEAN_CLASS)[1];
     var originalQuery = document.getElementsByClassName(ORIG_SPELLING_CLASS)[1];
     
-    var queryEnders = [searchBox, voiceSearch, suggestedQuery, originalQuery];
-    queryEnders.forEach(function(element, index, array){
-        if (element != null){
-            element.addEventListener('click', queryEnd);
-        }
-    });
-
     //Place logging handlers on search links
     var searchLinks = [];
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
@@ -372,6 +348,7 @@ var initializeLoggingListeners = function(){
     searchLinks.forEach(function(element, index, array){
         element.addEventListener("click", function(evt){
             //todo log which link was picked
+            logEntry.clickedItem = element.outerHTML;
             logEntry.linkRank = index + 1;
             logEntry.linkURL = element.childNodes[0].getAttribute("data-href");
             queryEnd(evt);
@@ -385,8 +362,9 @@ var restorePage = function(observer) {
     var interval = setInterval(function(){
         body = document.getElementById(GOOGLE_BODY);
         if (body){
+            console.log("restored body?");
             // observer.disconnect();
-            body.style.setProperty('display', 'block');
+            body.style.setProperty('visibility', 'visible')
             //line below causes race condition
             //observer.disconnect();
             clearInterval(interval);
@@ -400,12 +378,10 @@ var restoreKnowledgeBox = function(knowledgeBox){
     var upperBound = include(EXPERIMENT_CONDITIONS.slice(0,5), experimentCondition);
 
     var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
-
     var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
     var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
     var categories = knowledgeBox.getElementsByClassName(CATEGORY_CLASS);
     var categories2 = knowledgeBox.getElementsByClassName(CATEGORY_CLASS2);
-
 
     if(lowerBound && description && description.childNodes.length > 1) {
         logEntry.descriptionHidden = false;
@@ -438,6 +414,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
                     }
                     if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
                         logEntry.probablyWiki = true;
+                        console.log("keep hiding")
                         logEntry[heading+"_Categoryhidden"] = false;
                         restore(categories[i]);
                     } else if (upperBound && include(POSSIBLY_WIKI_CATEGORIES, heading)) {
@@ -445,7 +422,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
                         logEntry[heading+"_Categoryhidden"] = false;
                         restore(categories[i]);
                     } else {
-                        restore(categories[i]);
+                        // restore(categories[i]);
                     }
                 }
             } catch(e) {
@@ -463,6 +440,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
                 if(heading && heading.innerHTML){
                     heading = heading.innerHTML.innerHTML
                 }
+                console.log(heading)
                 if (middleBound && include(PROBABLY_WIKI_CATEGORIES, heading)) {
                     logEntry.probablyWiki = true;
                     logEntry[heading+"_Categoryhidden"] = false;
@@ -472,7 +450,7 @@ var restoreKnowledgeBox = function(knowledgeBox){
                     logEntry[heading+"_Categoryhidden"] = false;
                     restore(categories2[i]);
                 } else {
-                    restore(categories2[i]);
+                    // restore(categories2[i]);
                 }
             }
         }
@@ -589,6 +567,10 @@ var blockReload = function(){
     reloadAllowed = false;
 }
 
+var clearLoad = function() {
+    window.onbeforeunload = null;
+}
+
 //Get the value of whether the script is running
 chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     //Establish starttime
@@ -603,55 +585,69 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
     }
 
     logEntry.userID = response.userID;
-    logEntry.windowPixels = $(window).height() * $(window).width()
+    if(!logEntry.userID){
+        restorePage(observer);
+        clearLoad();
+        return;
+    }
     var diff = Date.now() - response.startTime
     experimentInProgress = diff <= EXPERIMENT_DURATION;
     logEntry.numWikiLinksRemoved = 0;
 
     getLatestSessionInfo("search", logEntry.userID, function(sessionInfo) {
-        logEntry.sessionID = sessionInfo.id; 
+        try {
+            logEntry.sessionID = sessionInfo.id; 
 
-        // experimentInProgress = false;
-        if(!experimentInProgress) {
-            experimentCondition = "unchanged";
-        } else {
-            experimentCondition = sessionInfo.experimentCondition;
-            logEntry.experimentCondition = experimentCondition;
-        }
+            // experimentInProgress = false;
+            // experimentCondition = "upperbound"
+            if(!experimentInProgress) {
+                experimentCondition = "unchanged";
+            } else {
+                experimentCondition = sessionInfo.experimentCondition;
+                logEntry.experimentCondition = experimentCondition;
+            }
+            experimentCondition = "upperbound+links"
+            console.log(experimentCondition);
 
-        //stops future modifications from being made if not supposed to modify
-        if(experimentCondition === "unchanged") {
-            observer.disconnect();
-        }
-
-        restoreModifications(experimentCondition);
-
-        //Ensure that if the page is exited out of it is logged
-        //uses beforeunload instead of unload to allow click event to occur
-        window.addEventListener("beforeunload", function(evt) {
-            blockReload();
-            queryEnd(evt);
-        });
-
-        
-        //after a specified ammount of time, page is displayed to the user.
-        setTimeout(function() {
-            restorePage(observer);
-            var reload = function() {
-                console.log("resetting script");
-                location.reload();
+            //stops future modifications from being made if not supposed to modify
+            if(experimentCondition === "unchanged") {
+                observer.disconnect();
             }
 
-            var currentHash = window.location.hash
+            restoreModifications(experimentCondition);
 
-            setInterval(function(){
-                if (!currentHash){
-                    currentHash = window.location.hash;
-                } else if(currentHash !== window.location.hash && reloadAllowed){
+            //Ensure that if the page is exited out of it is logged
+            //uses beforeunload instead of unload to allow click event to occur
+            window.addEventListener("beforeunload", function(evt) {
+                blockReload();
+                queryEnd(evt);
+            });
+
+            
+            //after a specified ammount of time, page is displayed to the user.
+            setTimeout(function() {
+                restorePage(observer);
+                var reload = function() {
+                    console.log("resetting script");
                     location.reload();
                 }
-            }, 100);
-        }, PAGE_DELAY);
+
+                var currentHash = window.location.hash
+
+                setInterval(function(){
+                    if (!currentHash){
+                        currentHash = window.location.hash;
+                    } else if(currentHash !== window.location.hash && reloadAllowed){
+                        location.reload();
+                    }
+                }, 100);
+            }, PAGE_DELAY);
+        } 
+        catch(e) {
+            restorePage(observer);
+            clearLoad();
+        }
+
     });
 });
 

@@ -3,29 +3,12 @@ var startTime;
 // const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
 // var stateCounter = 0;
 
-//Generate an unused user id
-var generateToken = function(callback) {
-    jQuery.ajax({
-        type: "GET",
-        url: SERVER + "/getNewUserID",
-        success: function(data) {
-            userID = parseInt(data);
-            callback();
-        }
-
-    });
-}
-
-
 //Grabs existing user id or generates new one and sets it to storage
 chrome.storage.sync.get('userid', function(items) {
     userID = items.userid;
-    if (!userID) {
-        userid = generateToken(function() {
-            chrome.storage.sync.set({userid: userID});
-        });
-    }
+    console.log(userID);
 });
+
 
 chrome.storage.sync.get('starttime', function(items) {
 	startTime = items.startTime;
