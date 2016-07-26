@@ -2,7 +2,7 @@ const SERVER = "https://wikiwipe.grouplens.org"
 document.addEventListener('DOMContentLoaded', documentEvents  , false);
 
 function Withdraw(input) { 
-    chrome.storage.sync.get('userid', function(items){
+    chrome.storage.local.get('userid', function(items){
         userID = items.userid;
         console.log(userID);
         console.log(input.value);
@@ -15,7 +15,7 @@ function Withdraw(input) {
             },
             success: function(data) {
                 console.log(data);
-                chrome.storage.sync.remove('userid');
+                chrome.storage.local.remove('userid');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) { 
                 alert("Status: " + textStatus); alert("Error: " + errorThrown); 
@@ -25,7 +25,7 @@ function Withdraw(input) {
 }
 
 function Enroll(input) { 
-    chrome.storage.sync.get('userid', function(items){
+    chrome.storage.local.get('userid', function(items){
         userID = items.userid;
         if(!userID){
             jQuery.ajax({
@@ -34,7 +34,7 @@ function Enroll(input) {
                 url: SERVER + "/getNewUserID",
                 success: function(data) {
                     userID = parseInt(data);
-                    chrome.storage.sync.set({userid: userID});
+                    chrome.storage.local.set({userid: userID});
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     alert("Status: " + textStatus); alert("Error: " + errorThrown); 

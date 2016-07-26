@@ -1,8 +1,7 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
-const control_weight = .33;
-const EXPERIMENT_CONDITIONS = ["unchanged", "lowerbound", "lowerbound+links", "middlebound", "middlebound+links", "upperbound", "upperbound+links", "all"];
-// const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets", "assets+links"]
+const control_weight = .25;
+const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets", "links+assets"]
 const other_weight = (1-control_weight) / (EXPERIMENT_CONDITIONS.length-1);
 
 var weight_list = [control_weight];
@@ -40,13 +39,7 @@ var updateServer = function(type, logEntry) {
     logEntry.timestamp = Date.now();
 
     var blob = new Blob([JSON.stringify(logEntry)], {type : 'application/json; charset=UTF-8'});
-    // var client = new XMLHttpRequest();
-    // client.open("POST", SERVER+queryString, true); // third parameter indicates sync xhr
-    // client.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-    // client.send(blob);
-
-    var success = navigator.sendBeacon(SERVER+queryString, blob);
-    // console.log(success);
+    // var success = navigator.sendBeacon(SERVER+queryString, blob);
 }
 
 var getNewExperimentCondition = function(type, userID, sessionID) {
