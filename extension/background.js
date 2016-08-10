@@ -1,6 +1,12 @@
 var userID;
 var startTime;
 
+// chrome.storage.local.clear(function() {
+//     var error = chrome.runtime.lastError;
+//     if (error) {
+//         console.error(error);
+//     }
+// });
 
 chrome.storage.local.get('userid', function(items) {
     userID = items.userid;
@@ -18,7 +24,7 @@ var idQuery = setInterval(function() {
     else {
         clearInterval(idQuery);
     }
-}, 10000);
+}, 1000);
 
 chrome.storage.local.get('starttime', function(items) {
 	startTime = items.startTime;
@@ -34,7 +40,7 @@ chrome.runtime.onMessage.addListener(function (req, send, sendResponse) {
 		"userID": userID,
 		"startTime": startTime
         // "experimentCondition": EXPERIMENT_CONDITIONS[stateCounter]
-	}
+    };
     if (req.cmd === "getUserInfo") {
         sendResponse(response);
     }

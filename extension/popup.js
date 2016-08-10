@@ -34,7 +34,8 @@ function Enroll(input) {
                 url: SERVER + "/getNewUserID",
                 success: function(data) {
                     userID = parseInt(data);
-                    chrome.storage.local.set({userid: userID});
+                    chrome.storage.local.set({userid: input.value});
+                    alert(data +"\nPlease wait 5 seconds before searching!");
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     alert("Status: " + textStatus); alert("Error: " + errorThrown); 
@@ -45,9 +46,6 @@ function Enroll(input) {
 }
 
 function documentEvents() {   
-    document.getElementById('ok_btn').addEventListener('click', 
-        function() { Withdraw(document.getElementById('name_textbox'));
-    });
     document.getElementById('enroll_btn').addEventListener('click', 
         function() { Enroll(document.getElementById('name_textbox'));
     });

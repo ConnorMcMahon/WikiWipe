@@ -1,7 +1,7 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
-const control_weight = .25;
-const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets", "links+assets"]
+const control_weight = .33;
+const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets"]
 const other_weight = (1-control_weight) / (EXPERIMENT_CONDITIONS.length-1);
 
 var weight_list = [control_weight];
@@ -9,7 +9,7 @@ for(var i = 0; i < EXPERIMENT_CONDITIONS.length-1; i++){
     weight_list.push(other_weight);
 }
 
-var generateWeighedList = function(list, weight) {
+function generateWeighedList(list, weight) {
     var weighed_list = [];
      
     // Loop over weights
@@ -28,21 +28,37 @@ var generateWeighedList = function(list, weight) {
 weighted_list = generateWeighedList(EXPERIMENT_CONDITIONS, weight_list);
 
 //Send the log entry to the server
-var updateServer = function(type, logEntry) {
-    console.log(logEntry);
+function updateServer(type, logEntry) {
 	var queryString;
 	if(type === "search") {
 		queryString = "/addLog";
 	} else if (type === "wiki") {
 		queryString = "/addWikiLog";
 	}
-    logEntry.timestamp = Date.now();
 
-    var blob = new Blob([JSON.stringify(logEntry)], {type : 'application/json; charset=UTF-8'});
+    // var blob = new Blob([JSON.stringify(logEntry)], {type : 'application/json; charset=UTF-8'});
+    jQuery.ajax({
+        type: "POST",
+        url: SERVER + queryString,
+        data: logEntry
+    })
     // var success = navigator.sendBeacon(SERVER+queryString, blob);
 }
 
-var getNewExperimentCondition = function(type, userID, sessionID) {
+function registerClick(logEntry, element) {
+    var queryString = "/addClick";
+    jQuery.ajax({
+        type: "POST",
+        url: SERVER + queryString,
+        data: {
+            "queryID": logEntry.queryID,
+            "clickedElement": element.outerHTML,
+            "timestamp": Date.now()
+        }
+    });
+}
+
+function getNewExperimentCondition(type, userID, sessionID) {
     var condition = weighted_list[Math.floor(Math.random() * weighted_list.length)];
     var queryString;
     if(type === "search") {
@@ -62,7 +78,7 @@ var getNewExperimentCondition = function(type, userID, sessionID) {
     return condition;
 }
 
-var getLatestSessionInfo = function(type, userID, callback) {
+function getLatestSessionInfo(type, userID, callback) {
     var queryString;
     if(type === "search") {
         queryString = "/getLatestSessionID";

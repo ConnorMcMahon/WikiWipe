@@ -3,7 +3,7 @@
 
   "name": "University of Minnesota Chrome Usage Study",
   "description": "This extension is a tool to gather Chrome usage information for a study conducted by the University of Minnesota - Twin Cities.",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "background": {
     "scripts": ["jquery.js", "serverconstants.js", "background.js"]
   },
@@ -14,11 +14,20 @@
     {
       "matches": ["*://www.google.com/*"],
       "js": ["jquery.js", "serverconstants.js", "wikipurge.js"],
-      "css": ["hide.css"]
+      "run_at": "document_start" 
+    },
+    {
+      "matches": ["*://www.google.com/*"],
+      "js": ["processpage.js"],
+      "run_at": "document_idle" 
     },
     {
       "matches": ["*://*.wikipedia.org/*"],
       "js": ["jquery.js", "serverconstants.js", "wikirecord.js"]
+    },
+    {
+      "matches": ["https://*/*"],
+      "js": ["dummy.js"]
     }
   ],
   "omnibox": {"keyword": "*"},
