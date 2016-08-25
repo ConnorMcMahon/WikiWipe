@@ -22,7 +22,6 @@ chrome.extension.sendMessage({ cmd: "getUserInfo" }, function (response) {
                 experimentCondition = sessionInfo.experimentCondition;
                 logEntry.sessionID = sessionInfo.id;
                 logEntry.queryID = guid();
-                experimentCondition = "links";
 
 				processPage();
             } 

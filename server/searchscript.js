@@ -1,1 +1,0 @@
-db.collection("search_session").find().toArray();
