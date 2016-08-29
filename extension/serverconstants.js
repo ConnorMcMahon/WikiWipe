@@ -1,7 +1,7 @@
 const SERVER = "https://wikiwipe.grouplens.org"
 const SESSION_TIMEOUT = 30 * 60 *1000//30 minutes
 const control_weight = .33;
-const EXPERIMENT_CONDITIONS = ["unchanged", "links", "assets"]
+const EXPERIMENT_CONDITIONS = ["unchanged", "links+assets", "assets"]
 const other_weight = (1-control_weight) / (EXPERIMENT_CONDITIONS.length-1);
 
 var weight_list = [control_weight];
@@ -51,6 +51,7 @@ function registerClick(logEntry, element) {
         type: "POST",
         url: SERVER + queryString,
         data: {
+            "userID": logEntry.userID,
             "queryID": logEntry.queryID,
             "clickedElement": element.outerHTML,
             "timestamp": Date.now()

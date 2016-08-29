@@ -4,6 +4,8 @@ const EXPERIMENT_DURATION = 1000 * 60 * 30; //milliseconds in 30 minutes
 
 //Asset based constants
 const KNOWLEDGE_BOX_CLASS = 'g mnr-c rhsvw g-blk';
+const KNOWLEDGE_BOX_CLASS2 = "g kno-kp mnr-c g-blk"
+const DETAILED_HEADER_CLASS = "_f2g";
 const QA_BOX_CLASS = 'kp-blk _thf _Rqb _RJe'
 const SEARCH_RESULTS_CLASS = 'rc';
 const ANSWERS_CLASS = 'g mnr-c g-blk';
@@ -84,14 +86,19 @@ var hideKnowledgeBox = function(knowledgeBox) {
         hideParts = false;
     }
 
-    if(experimentCondition === "all" || experimentCondition === "all_assets" || experimentCondition === "links+assets"){
+    if (hideParts && 
+        ((experimentCondition === "all" || experimentCondition === "all_assets" || experimentCondition === "links+assets") 
+        || knowledgeBox.getElementsByClassName(DETAILED_HEADER_CLASS).length > 0)) 
+    {
         hide(knowledgeBox, true);
     }
 
     var textSection = knowledgeBox.getElementsByClassName(KNOWLEDGE_TEXT_CLASS)[0];
     var classification = knowledgeBox.getElementsByClassName(CLASSIFICATION_CLASS)[0];
-    var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
-    var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
+    if(textSection) {
+        var description = textSection.getElementsByClassName(KNOWLEDGE_DESC_CLASS)[0];
+        var facts = textSection.getElementsByClassName(KNOWLEDGE_FACTS);
+    }
     var categories = Array.prototype.slice.call(knowledgeBox.getElementsByClassName(CATEGORY_CLASS),0);
     var categories2 = Array.prototype.slice.call(knowledgeBox.getElementsByClassName(CATEGORY_CLASS2),0);
     var categoriesCombined = categories.concat(categories2);
@@ -140,7 +147,19 @@ var hideKnowledgeBox = function(knowledgeBox) {
 //Removes WikiRelated DOM elements
 var removeDOMElements = function() {
     //locates any potential dom elements to remove
+    var knowledgeBoxesFinal = []
     var knowledgeBoxes = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS);
+    if(knowledgeBoxes) {
+        for(var i = 0; i < knowledgeBoxes.length; i++){
+            knowledgeBoxesFinal.push(knowledgeBoxes[i]);
+        }
+    }
+    var knowledgeBoxes2 = document.getElementsByClassName(KNOWLEDGE_BOX_CLASS2);
+    if(knowledgeBoxes2) {
+        for(var i = 0; i < knowledgeBoxes2.length; i++){
+            knowledgeBoxesFinal.push(knowledgeBoxes2[i]);
+        }
+    }
     var answers = document.getElementsByClassName(ANSWERS_CLASS);
     var knowledgeChart = document.getElementById(KNOWLEDGE_TABLE_ID);
     var searchResults = document.getElementsByClassName(SEARCH_RESULTS_CLASS);
@@ -152,15 +171,15 @@ var removeDOMElements = function() {
     var removeAssets = experimentCondition === "assets" || experimentCondition === "all" || experimentCondition === "assets_all" || experimentCondition === "links+assets";
     var removeLinks = experimentCondition === "all" || experimentCondition === "links" || experimentCondition === "links+assets";
     
-    if (knowledgeBoxes) {    
-        for(var i = 0; i < knowledgeBoxes.length; i++){
+    if (knowledgeBoxesFinal) {    
+        for(var i = 0; i < knowledgeBoxesFinal.length; i++){
             //check if the "knowledge box" is actually aknowledge box or a "see results box"
-            if (knowledgeBoxes[i].getElementsByClassName(SEE_RESULTS_CLASS).length > 0){
+            if (knowledgeBoxesFinal[i].getElementsByClassName(SEE_RESULTS_CLASS).length > 0){
                 logEntry.seeResultsAboutPresent = true;
-                hide(knowledgeBoxes[i], experimentCondition === "all");
+                hide(knowledgeBoxesFinal[i], experimentCondition === "all");
             } else {
                 logEntry.knowledgeBoxPresent = true;
-                hideKnowledgeBox(knowledgeBoxes[i], removeAssets);    
+                hideKnowledgeBox(knowledgeBoxesFinal[i], removeAssets);    
             }   
         }       
     }
@@ -175,12 +194,14 @@ var removeDOMElements = function() {
             if (isAnswerBox) {
                 logEntry.answerBoxPresent = true;
                 //Find the source in the html
-                var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
-                //hides the answer box if it is from WikiData
-                if (!isSourced) {
-                    logEntry.answerBoxUnsourced = true;
-                    hide(answers[i], removeAssets);
-                }
+                // var isSourced = (answers[i].childNodes[1].childNodes.length > 1) || (answers[i].getElementsByClassName("rc").length > 0);
+                // //hides the answer box if it is from WikiData
+                // if (!isSourced) {
+                //     logEntry.answerBoxUnsourced = true;
+                //     hide(answers[i], removeAssets);
+                // }
+                logEntry.answerBoxUnsourced = true;
+                hide(answers[i], removeAssets);
             } else if (isQABox) {
                 var questions = targetElement.getElementsByClassName("related-question-pair");
                 logEntry.QABoxPresent = true;
