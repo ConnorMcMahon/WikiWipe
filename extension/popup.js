@@ -35,6 +35,8 @@ function Enroll(input) {
                 success: function(data) {
                     userID = parseInt(data);
                     chrome.storage.local.set({userid: input.value});
+                    var body = document.getElementById("body");
+                    body.innerHTML = "Registered."
                     // alert(data +"\nPlease wait 5 seconds before searching!");
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
