@@ -47,16 +47,15 @@ function updateServer(type, logEntry) {
 
 function registerClick(logEntry, element) {
     var queryString = "/addClick";
-    jQuery.ajax({
-        type: "POST",
-        url: SERVER + queryString,
-        data: {
-            "userID": logEntry.userID,
-            "queryID": logEntry.queryID,
-            "clickedElement": element.outerHTML,
-            "timestamp": Date.now()
-        }
-    });
+    var data = {
+        "userID": logEntry.userID,
+        "queryID": logEntry.queryID,
+        "clickedElement": element.outerHTML,
+        "timestamp": Date.now()
+    };
+    var blob = new Blob([JSON.stringify(data)], {type : 'application/json; charset=UTF-8'});
+    navigator.sendBeacon(SERVER+queryString, blob);
+    document.location.href = element.href;
 }
 
 function getNewExperimentCondition(type, userID, sessionID) {

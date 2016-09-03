@@ -282,13 +282,17 @@ var removeDOMElements = function() {
 
 //Finds all entities that could indicate a new search query after page loads
 var initializeLoggingListeners = function(){
-    var links = document.links;
-    for(var i = 0; i < links.length; i++){
-        var link = links[i];
-        link.addEventListener("click", function(evt) {
-            registerClick(logEntry, evt.target);
-        });
-    }
+    $("body").on("click", "a", function(evt) {
+        evt.preventDefault();
+        registerClick(logEntry, evt.target);
+    });
+    // var links = document.links;
+    // for(var i = 0; i < links.length; i++){
+    //     var link = links[i];
+    //     link.addEventListener("click", function(evt) {
+    //         registerClick(logEntry, evt.target);
+    //     });
+    // }
 
 };
 
